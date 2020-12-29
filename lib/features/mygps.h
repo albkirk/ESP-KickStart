@@ -19,7 +19,7 @@ TinyGPSPlus gps;
 
 #ifdef ESP8266
     #include "SoftwareSerial.h"                     // for use with ESP8266
-    SoftwareSerial ss();                            // The serial connection to the GPS device
+    SoftwareSerial ss(GPS_RX, GPS_TX);              // The serial connection to the GPS device
 
 #elif ESP32
     HardwareSerial serialGPS(2);                    // for use with ESP32 (1/2)
@@ -41,7 +41,7 @@ static void gps_update(unsigned long ms = GPS_cycle)
       gps.encode(ss.read());
   } while (millis() - start < ms);
 
-  if(gps.location.isValid()) {
+  if(gps.location.isUpdated()) {
         GPS_Valid = true;
         GPS_Age = gps.satellites.age();
         GPS_Sat = gps.satellites.value();
@@ -65,11 +65,11 @@ static void gps_update(unsigned long ms = GPS_cycle)
 
 bool gps_detected() {
     unsigned long starttime = millis();
-    while (!gps.satellites.isValid() && millis() - starttime < 2000)
+    while (!gps.satellites.isUpdated() && millis() - starttime < 2000)
     {
         gps_update();
     }
-    if (!gps.satellites.isValid()) {
+    if (!gps.satellites.isUpdated()) {
         telnet_println("No GPS data received: check wiring");
         return false;
     }
@@ -85,7 +85,7 @@ bool gps_detected() {
 void gps_start() {
     unsigned long starttime = millis();
     if (GPS_SW>=0) digitalWrite(GPS_SW, HIGH);                  // GPS Power on
-    config.HW_Module = true;
+    // config.HW_Module = true;
     telnet_println("GPS power ON");
     if(gps_detected()) {
         while (!GPS_Valid && millis() - starttime < Cold_Start) // Worst scenario is cold_Starting
@@ -98,7 +98,7 @@ void gps_start() {
 
 void gps_stop() {
     if (GPS_SW>=0) digitalWrite(GPS_SW, LOW);                   // GPS Power off
-    config.HW_Module = false;
+    // config.HW_Module = false;
     telnet_println("GPS power OFF");
 }
 

@@ -12,16 +12,30 @@
 
 // Libraries to INCLUDE
 #include <storage.h>
-#include <esp32hw.h>
+
+#ifdef ESP32
+    #include <esp32hw.h>
+#else 
+    #include <hw8266.h>
+#endif
+
 #include <mywifi.h>
-//#include <httpupd.h>
+
+#ifdef ESP8266
+    #include <httpupd.h>
+#endif
+
 #include <telnet.h>
 #include <ntp.h>
 #include <mqtt.h>
 #include <hassio.h>
-#include <ota.h>
+#ifndef ESP8285
+    #include <ota.h>
+#endif
 #include <project.h>
-#include <web.h>
+#ifndef ESP8285
+    #include <web.h>
+#endif
 #include <global.h>
 #include <actions.h>                        // Added later because functions from project are called here.
 
@@ -31,12 +45,12 @@ void setup() {
     wifi_disconnect();
 
   // Start Serial interface
-  //Serial.begin(74880);                    // This odd baud speed will show ESP8266 boot diagnostics too.
-  Serial.begin(115200);                     // For faster communication use 115200
+      Serial.begin(74880);                  // This odd baud speed will shows ESP8266 boot diagnostics too.
+      //Serial.begin(115200);               // For faster communication use 115200
 
-  Serial.println("");
-  Serial.println("Hello World!");
-  Serial.println("My ID is " + ChipID + " and I'm running version " + SWVer);
+      Serial.println("");
+      Serial.println("Hello World!");
+      Serial.println("My ID is " + ChipID + " and I'm running version " + SWVer);
       Serial.println("Reset reason: " + ESPWakeUpReason());
 
   // Start Storage service and read stored configuration
@@ -50,10 +64,11 @@ void setup() {
 
   // Start WiFi service (Station or/and as Access Point)
       wifi_setup();
-
+    
   // Check for HTTP Upgrade
-      //http_upg();               // Note: this service kills all running UDP and TCP services
-
+#ifdef ESP8266
+      http_upg();               // Note: this service kills all running UDP and TCP services
+#endif
   // Start TELNET service
       if (config.TELNET) telnet_setup();
 
@@ -63,17 +78,19 @@ void setup() {
  // Start MQTT service
       mqtt_setup();
 
+#ifndef ESP8285
   // Start OTA service
       if (config.OTA) ota_setup();
 
   // Start ESP Web Service
       if (config.WEB) web_setup();
+#endif
 
   // **** Project SETUP Sketch code here...
       project_setup();
 
   // Last bit of code before leave setup
-      ONTime_Offset = millis() + 100UL;     //  100ms after finishing the SETUP function it starts the "ONTime" countdown.
+      ONTime_Offset = millis() + 200UL;     //  200ms after finishing the SETUP function it starts the "ONTime" countdown.
                                             //  it should be good enough to receive the MQTT "ExtendONTime" msg
 } // end of setup()
 
@@ -97,11 +114,13 @@ void loop() {
   // MQTT handling
       mqtt_loop();
 
+#ifndef ESP8285
   // OTA request handling
       if (config.OTA) ota_loop();
 
   // ESP Web Server requests handling
       if (config.WEB) web_loop();
+#endif
 
   // **** Project LOOP Sketch code here ...
       project_loop();

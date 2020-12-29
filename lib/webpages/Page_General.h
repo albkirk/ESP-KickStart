@@ -43,9 +43,18 @@ const char PAGE_AdminGeneralSettings[] PROGMEM =  R"=====(
     <option value="WC">WC</option>
 </select>
 </td></tr>
+<tr><td align="right">WAKE Time:</td><td>
+<select  id="wktm" name="wktm">
+    <option value="0">0 Sec</option>
+    <option value="1">1 Sec</option>
+    <option value="10">10 Sec</option>
+    <option value="60">1 Min</option>
+</select>
+</td></tr>
 <tr><td align="right">Sleep Time:</td><td>
 <select  id="sltm" name="sltm">
     <option value="1">1 Min</option>
+    <option value="2">2 Min</option>
     <option value="5">5 Min</option>
     <option value="10">10 Min</option>
     <option value="15">15 Min</option>
@@ -54,14 +63,18 @@ const char PAGE_AdminGeneralSettings[] PROGMEM =  R"=====(
     <option value="121">2 Hour</option>
     <option value="181">3 Hour</option>
     <option value="241">4 Hour</option>
+    <option value="0">Forever</option>
 </select>
 </td></tr>
-<tr><td align="right">Module Enabled:</td><td><input type="checkbox" id="hw_module" name="hw_module"></td></tr>
+<tr><td align="right">DEEP Sleep:</td><td><input type="checkbox" id="dsleep" name="dsleep"></td></tr>
+<tr><td align="right">LED Enabled:</td><td><input type="checkbox" id="led" name="led"></td></tr>
 </table>
 
 <hr>
 <strong>Device info</strong><br>
 <table border="0"  cellspacing="0" cellpadding="3" >
+<tr><td align="right">CPU Clock:</td><td><span id="cpu_clock"></span></td></tr>
+<tr><td align="right">Flash Size:</td><td><span id="flashsize"></span></td></tr>
 <tr><td align="right">SW Version:</td><td><span id="sw_Version"></span></td></tr>
 <tr><td align="right">Mac:</td><td><span id="x_mac"></span></td></tr>
 <tr><td align="right">AP SSID:</td><td><span id="ap_ssid"></span></td></tr>
@@ -101,21 +114,23 @@ void send_general_html()
     if (MyWebServer.args() > 0 )  // Save Settings
     {
         String Last_config = String(config.Location);
-        config.HW_Module = false;
+        config.DEEPSLEEP = false;
+        config.LED = false;
         for ( uint8_t i = 0; i < MyWebServer.args(); i++ ) {
             if (MyWebServer.argName(i) == "webusername") strcpy(config.WEB_User, urldecode(MyWebServer.arg(i)).c_str());
             if (MyWebServer.argName(i) == "webpassword" && urldecode(MyWebServer.arg(i)) != "") strcpy(config.WEB_Password, urldecode(MyWebServer.arg(i)).c_str());
             if (MyWebServer.argName(i) == "clientid") strcpy(config.ClientID, urldecode(MyWebServer.arg(i)).c_str());
             if (MyWebServer.argName(i) == "locat") strcpy(config.Location, urldecode(MyWebServer.arg(i)).c_str());
-            if (MyWebServer.argName(i) == "sltm") config.SLEEPTime =  MyWebServer.arg(i).toInt();
-            if (MyWebServer.argName(i) == "hw_module") config.HW_Module = true;
+            if (MyWebServer.argName(i) == "wktm") config.ONTime =  byte(MyWebServer.arg(i).toInt());
+            if (MyWebServer.argName(i) == "sltm") { config.SLEEPTime =  MyWebServer.arg(i).toInt(); SLEEPTime = config.SLEEPTime; }
+            if (MyWebServer.argName(i) == "dsleep") config.DEEPSLEEP = true;
+            if (MyWebServer.argName(i) == "led") config.LED = true;
         }
         if(Last_config != String(config.Location)) {
             config_backup();
             hassio_attributes();
         }
         storage_write();
-        firstStart = true;
     }
     if (!MyWebServer.authenticate(config.WEB_User, config.WEB_Password))  {
         MyWebServer.requestAuthentication();
@@ -137,8 +152,12 @@ void send_general_configuration_values_html()
     //values += "webpassword|" +  String(config.WEB_Password) +  "|input\n";      // KEEP IT COMMENTED TO NOT SHOW THE WiFi KEY!!!
     values += "clientid|" +  String(config.ClientID) +  "|input\n";
     values += "locat|" + (String) config.Location + "|input\n";
+    values += "wktm|" + (String) config.ONTime + "|input\n";
     values += "sltm|" + (String) config.SLEEPTime + "|input\n";
-    values += "hw_module|" + (String) (config.HW_Module ? "checked" : "") + "|chk\n";
+    values += "dsleep|" + (String) (config.DEEPSLEEP ? "checked" : "") + "|chk\n";
+    values += "led|" + (String) (config.LED ? "checked" : "") + "|chk\n";
+    values += "cpu_clock|" + String(CPU_Clock()) + " MHz" + "|div\n";
+    values += "flashsize|" + Flash_Size() +  "|div\n";
     values += "sw_Version|" + String(SWVer) +  "|div\n";
     values += "x_mac|" + GetMacAddress() +  "|div\n";
     values += "ap_ssid|" + ESP_SSID +  "|div\n";

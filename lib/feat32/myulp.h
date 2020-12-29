@@ -66,7 +66,7 @@ void ulp_action(uint32_t us) {
 
   // PIN to GPS Switch
     const gpio_num_t rtc_pin = (gpio_num_t)GPS_SW;          // Ex.: GPIO_NUM_12
-    const int rtc_pin_bit = RTC_GPIO_channels[GPS_SW] + 14;
+    const uint32_t rtc_pin_bit = RTC_GPIO_channels[GPS_SW] + 14;
   
 
   // GPIO initialization (set to output and initial value is 0)

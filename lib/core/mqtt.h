@@ -93,8 +93,12 @@ void mqtt_unsubscribe(String subpath, String subtopic) {
 }
 
 void mqtt_set_client() {
-        if (config.MQTT_Secure) MQTTclient.setClient(secureclient);
-        else MQTTclient.setClient(unsecuclient);
+#ifndef ESP8285
+    if (config.MQTT_Secure) MQTTclient.setClient(secureclient);
+    else MQTTclient.setClient(unsecuclient);
+#else
+    MQTTclient.setClient(unsecuclient);
+#endif
 }
 
 void mqtt_connect(String Will_Topic = (mqtt_pathtele + "Status"), String Will_Msg = "UShut") {
@@ -141,6 +145,15 @@ void mqtt_reset() {
     storage_reset();
     RTC_reset();
     ESPRestart();
+}
+
+
+void mqtt_wait_loop(unsigned long wait_timeout = rstr_syn_timeout) {
+    unsigned long start_time = millis();
+    while (millis() - start_time < wait_timeout )
+    {
+        MQTTclient.loop();
+    }
 }
 
 

@@ -11,14 +11,18 @@ void deepsleep_loop() {
 }
 float Batt_OK_check() {                     // If LOW Batt, it will DeepSleep forever!
     float Batt_Level = getBattLevel();      // Check Battery Level
-    if (Batt_Level < Batt_L_Thrs) {
-          mqtt_publish(mqtt_pathtele, "Status", "LOW Battery");
-          mqtt_publish(mqtt_pathtele, "Battery", String(Batt_Level,0));
-          mqtt_disconnect();
-          telnet_println("Going to sleep forever. Please, recharge the battery ! ! ! ");
-          delay(100);
-          GoingToSleep(0, curUnixTime());   // Sleep forever
-          return Batt_Level;                // Actually, it will never return !!
+    if (Batt_Level < Batt_L_Thrs && Batt_Level >= 0) {
+        mqtt_publish(mqtt_pathtele, "Status", "LOW Battery");
+        mqtt_publish(mqtt_pathtele, "Battery", String(Batt_Level,0));
+        mqtt_disconnect();
+        telnet_println("Going to sleep forever. Please, recharge the battery ! ! ! ");
+        //#ifdef IP5306
+        //    setPowerBoostKeepOn(false);
+        //#endif
+        flash_LED(5);
+        delay(100);
+        GoingToSleep(0, curUnixTime());   // Sleep forever
+        return Batt_Level;                // Actually, it will never return !!
     }
     return Batt_Level;
 }

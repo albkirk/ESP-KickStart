@@ -1,7 +1,6 @@
 //
 //Constants
 //
-boolean firstStart = true;                // On firststart = true, NTP will try to get a valid time
 int AdminTimeOutCounter = 0;              // Counter for Disabling the AdminMode
 
 //
@@ -88,7 +87,7 @@ String urldecode(String input) // (based on https://code.google.com/p/avr-netino
 #include "PAGE_Wireless.h"
 #include "Page_FactoryReset.h"
 #include "Page_Save_Quit.h"
-#ifdef Modem_WEB
+#ifdef Modem_WEB_TELNET
   #include "Page_Modem.h"
 #endif
 #ifdef GPS_WEB
@@ -119,7 +118,7 @@ void web_setup() {
     MyWebServer.on ( "/admin/reset",     execute_factory_reset_html);
     MyWebServer.on ( "/admin/savequit",     execute_save_quit_html);
 
-    #ifdef Modem_WEB
+    #ifdef Modem_WEB_TELNET
         MyWebServer.on ( "/modem.html", send_modem_html  );
         MyWebServer.on ( "/admin/modemvalues", send_modem_values_html );
     #else

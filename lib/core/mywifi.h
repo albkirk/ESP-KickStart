@@ -35,7 +35,7 @@ String WIFI_state_string(int wifistate = WIFI_state) {
 // void wifi_disconnect() {}                                // defined on 8266_HW.h and esp32.h file
 
 void wifi_connect() {
-    //  Connect to WiFi acess point or start as Acess point
+    //  Connect to Local wireless network or start as Access Point
     if ( WiFi.status() != WL_CONNECTED ) {
         if (config.APMode) {
             if (config.STAMode) WiFi.mode(WIFI_AP_STA);     // Setup ESP in AP+Station  mode

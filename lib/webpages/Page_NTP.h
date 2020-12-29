@@ -88,7 +88,6 @@ void send_NTP_configuration_html()
     }
     storage_write();
     if (config.DEBUG) storage_print();
-    firstStart = true;
   }
   MyWebServer.send ( 200, "text/html", PAGE_NTPConfiguration ); 
   Serial.println(__FUNCTION__); 

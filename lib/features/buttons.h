@@ -6,9 +6,9 @@ void ICACHE_RAM_ATTR C_pressed ();
 
 
 // **** Normal code definition here ...
-#define BUT_A 13                    // Button A INPUT pin
-#define BUT_B -1                    // Button B INPUT pin
-#define BUT_C -1                    // Button C INPUT pin
+//#define BUT_A -1                  // Button A INPUT pin. Configure in "def_conf.h"
+//#define BUT_B -1                  // Button B INPUT pin. Configure in "def_conf.h"
+//#define BUT_C -1                  // Button C INPUT pin. Configure in "def_conf.h"
 #define Butt_Bounce_Time 25         // time interval window to ignore bouncing
 #define Butt_Interval 500           // time interval window to count buttons pushes
 static bool A_STATUS = false;       // status of button A (true = pressed, false = released)

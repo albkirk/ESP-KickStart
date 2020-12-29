@@ -13,6 +13,7 @@ const char PAGE_Modem[] PROGMEM = R"=====(
 <tr><td align="right">Model :</td><td><span id="modemInfo"></span></td></tr>
 <tr><td align="right">IMEI :</td><td><span id="imei"></span></td></tr>
 <tr><td align="right">State :</td><td><span id="state"></span></td></tr>
+<tr><td align="right">Enabled:</td><td><input type="checkbox" id="hw_module" name="hw_module"></td></tr>
 </table>
 
 <hr>
@@ -93,18 +94,32 @@ void send_modem_html()
         String old_user = String(config.MODEM_User);
         String old_pass = String(config.MODEM_Password);
         String old_pin  = String(config.SIMCardPIN);
+        bool old_HW_Mod = config.HW_Module;
+        config.HW_Module = false;
+        bool Need_to_Store = false;
 
         for ( uint8_t i = 0; i < MyWebServer.args(); i++ ) {
             if (MyWebServer.argName(i) == "apn") strcpy(config.APN, urldecode(MyWebServer.arg(i)).c_str());
             if (MyWebServer.argName(i) == "modemusername") strcpy(config.MODEM_User, urldecode(MyWebServer.arg(i)).c_str());
             if (MyWebServer.argName(i) == "modempassword" && urldecode(MyWebServer.arg(i)) != "") strcpy(config.MODEM_Password, urldecode(MyWebServer.arg(i)).c_str());
+            if (MyWebServer.argName(i) == "hw_module") config.HW_Module = true;
+        }
+        if(old_HW_Mod != config.HW_Module){
+            if (config.HW_Module) { 
+                if (Modem_state == 0) {
+                    MODEM_ON();
+                    delay(50);
+                }
+                yield();
+            }
+            else { if (Modem_state >=1) modem_stop(); }
+            Need_to_Store = true;
         }
         if (old_apn != String(config.APN) || old_user != String(config.MODEM_User) || old_pass != String(config.MODEM_Password) || old_pin != String(config.SIMCardPIN)) {
-            MODEM_Disconnect();
+            if (Modem_state >=3) MODEM_Disconnect();
             if (MODEM_Connect()) {
                 telnet_println("Connected with success using new data");
-                storage_write();
-                if (config.DEBUG) storage_print();
+                Need_to_Store = true;
             }
             else {
                 strcpy(config.APN, old_apn.c_str());
@@ -113,6 +128,10 @@ void send_modem_html()
                 strcpy(config.SIMCardPIN, old_pin.c_str());
                 telnet_println("Failing connecting with new data. Restore previous config...");
             }
+        }
+        if(Need_to_Store) {
+            storage_write();
+            if (config.DEBUG) storage_print();
         }
     }
 
@@ -134,22 +153,40 @@ void send_modem_html()
 
 void send_modem_values_html ()
 {
-    if (Modem_state >= 2) MODEM_Info();
+    MODEM_Info();
     String values ="";
 
     values += "modemInfo|" + ModemInfo + "|div\n";
     values += "imei|" + ModemIMEI + "|div\n";
     values += "state|" + Modem_state_Name[Modem_state] + "|div\n";
+    values += "hw_module|" + (String) (config.HW_Module ? "checked" : "") + "|chk\n";
     values += "imsi|" + SIMCardIMSI + "|div\n";
     values += "ccid|" + SIMCardCCID  + "|div\n";
-    values += "SIMStatus|" + SimStatus_Name[modem.getSimStatus()] + "|div\n";
-    values += "regstatus|" + RegStatus_string(modem.getRegistrationStatus()) + "|div\n";
     values += "apn|" +  String(config.APN) +  "|input\n";
     values += "modemusername|" +  String(config.MODEM_User) +  "|input\n";
     values += "modempassword|" +  String(config.MODEM_Password) +  "|input\n";      // KEEP IT COMMENTED TO NOT SHOW THE PASS!!!
-    values += "cop|" + modem.getOperator() + "|div\n";
-    values += "rssi|" + String(CSQ_to_RSSI(modem.getSignalQuality())) + "|div\n";
-    values += "modemip|" + modem.localIP().toString() + "|div\n";
+    if (Modem_state >= 3) {
+        values += "cop|" + modem.getOperator() + "|div\n";
+        values += "modemip|" + modem.localIP().toString() + "|div\n";
+    }
+    else {
+        values += "cop| |div\n";
+        values += "modemip|(IP unset)|div\n";
+    }
+    if (Modem_state >= 2) {
+        values += "rssi|" + String(CSQ_to_RSSI(modem.getSignalQuality())) + "|div\n";
+    }
+    else {
+        values += "rssi| |div\n";
+    }
+    if (Modem_state >= 1) {
+        values += "SIMStatus|" + SimStatus_Name[modem.getSimStatus()] + "|div\n";
+        values += "regstatus|" + RegStatus_string(modem.getRegistrationStatus()) + "|div\n";
+    }
+    else {
+        values += "SIMStatus|(Not checked)|div\n";
+        values += "regstatus|(Not checked)|div\n";
+    }
     MyWebServer.send ( 200, "text/plain", values);
     if (config.DEBUG) Serial.println(__FUNCTION__);
 }

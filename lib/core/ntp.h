@@ -110,12 +110,12 @@ unsigned long adjustTimeZone(unsigned long _timeStamp, int _timeZone, bool _isDa
 }
 
 
-void getNTPtime() {
+void getNTPtime(unsigned long timeout_sync = 1000UL) {
     bool loop_timeOut = true;
     NTP_Sync = false;
     unsigned long NTPTime = 0;                        // Resetting value to 0
 
-    if (WIFI_state != WL_CONNECTED) telnet_println( "NTP ERROR! ==> WiFi NOT Connected!" );
+    if (WIFI_state != WL_CONNECTED && !Celular_Connected) telnet_println( "NTP ERROR! ==> NO Internet connection!" );
     else {
         myconfigTime("TZ_Etc_UTC", config.NTPServerName, config.NTPServerName, config.NTPServerName);
         unsigned long start_sync = millis();
@@ -123,7 +123,7 @@ void getNTPtime() {
         while ( !NTP_Sync && !loop_timeOut) {
             NTPTime = time(nullptr);
             RefMillis = millis();                 // Exact moment that NTP data was retrived
-            if (millis() - start_sync > 1000) loop_timeOut = true;
+            if (millis() - start_sync > timeout_sync) loop_timeOut = true;
             if (NTPTime > 31536000UL) NTP_Sync = true;
             yield();
         }
@@ -177,7 +177,7 @@ String curDateTime() {
     cur_unixtime = curUnixTime();
     DateTime = ConvertTimeStamp(cur_unixtime);
     cdt_var =  String(WeekDays[DateTime.wday]) + ", " + String(DateTime.year) + "/" + String(DateTime.month) + "/" + String(DateTime.day);
-    cdt_var += "\t" + String(DateTime.hour) + ":" + String(DateTime.minute) + ":" + String(DateTime.second);
+    cdt_var += "  " + String(DateTime.hour) + ":" + String(DateTime.minute) + ":" + String(DateTime.second);
     return cdt_var;
 }
 

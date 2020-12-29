@@ -7,8 +7,7 @@ void custom_mqtt(String command, String cmd_value) {
     mqtt_publish(mqtt_pathtele, "DateTime", String(curDateTime()));
     hassio_attributes();
     //ambient_data();
-    telnet_println("WiFi State: " + WIFI_state_Name[WIFI_state] + "\t MQTT State: " + MQTT_state_string());
-    telnet_println("Modem State: " + Modem_state_Name[Modem_state] + "\t REG State: " + RegStatus_string(modem.getRegistrationStatus()));
+    telnet_println("Flash: " + Flash_Size() + "  -  CPU Clock: " + String(CPU_Clock()) + " MHz  -  WiFi State: " + WIFI_state_Name[WIFI_state] + "  -  MQTT State: " + MQTT_state_string());
   }
   if ( command == "Config" && bool(cmd_value.toInt())) {
     mqtt_publish(mqtt_pathtele, "OTA", String(config.OTA));
@@ -20,16 +19,11 @@ void custom_mqtt(String command, String cmd_value) {
     config_backup();
   }
   
-  if ( command == "MODEM_ON" && bool(cmd_value.toInt())) MODEM_ON();
-  if ( command == "MODEM_OFF" && bool(cmd_value.toInt())) MODEM_OFF();
-  if ( command == "MODEM_Connect" && bool(cmd_value.toInt())) MODEM_Connect();
-  if ( command == "MODEM_Disconnect" && bool(cmd_value.toInt())) MODEM_Disconnect();
-  if ( command == "MODEM_Info" && bool(cmd_value.toInt())) MODEM_Info();
-  if ( command == "send_Telemetry" && bool(cmd_value.toInt())) { gps_update(); print_gps_data(); send_Telemetry(); }
-  if ( command == "isconnected" && bool(cmd_value.toInt())) Serial.println(modem.isNetworkConnected());
+  if ( command == "CPU_Boost" ) { CPU_Boost(bool(cmd_value.toInt())); delay(10); telnet_println("CPU Clock: " + String(CPU_Clock()) + " MHz"); }
+  if ( command == "CPU_Clock" && bool(cmd_value.toInt())) telnet_println("CPU Clock: " + String(CPU_Clock()) + " MHz");
+  //if ( command == "send_Telemetry" && bool(cmd_value.toInt())) { gps_update(); print_gps_data(); send_Telemetry(); }
 
   if ( command == "BattPowered") BattPowered = bool(cmd_value.toInt());
-  if ( command == "GPS_Switch") {if (bool(cmd_value.toInt())) { gps_start(); print_gps_data ();} else gps_stop();}
   
   if ( command == "BckpRstr") {
       if (cmd_value == "") telnet_println("Restore data is empty");
@@ -62,7 +56,7 @@ void custom_update(){
 
 
 void parse_at_command(String msg) {
-    #ifdef Modem
+    #ifdef Modem_WEB_TELNET
         msg.remove(0, 2);       // to remove "AT"
         modem.sendAT(msg);
         String res = "";

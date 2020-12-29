@@ -39,15 +39,17 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "DeviceName") {hassio_delete(); strcpy(config.DeviceName, cmd_value.c_str()); hassio_discovery(); hassio_attributes(); storage_write(); }
     if ( command == "Location") {strcpy(config.Location, cmd_value.c_str()); config_backup(); hassio_attributes(); storage_write(); }
     if ( command == "ClientID") {hassio_delete(); strcpy(config.ClientID, cmd_value.c_str()); hassio_discovery(); hassio_attributes(); storage_write(); }
-    if ( command == "DEEPSLEEP") { config.DEEPSLEEP = bool(cmd_value.toInt());storage_write(); }
-    if ( command == "SLEEPTime") { config.SLEEPTime = byte(cmd_value.toInt());storage_write(); }
+    if ( command == "DEEPSLEEP") { config.DEEPSLEEP = bool(cmd_value.toInt()); storage_write(); }
+    if ( command == "SLEEPTime") { config.SLEEPTime = byte(cmd_value.toInt()); SLEEPTime = config.SLEEPTime; storage_write(); }
     if ( command == "ONTime") { config.ONTime = byte(cmd_value.toInt());storage_write(); }
     if ( command == "ExtendONTime") if (bool(cmd_value.toInt()) == true) Extend_time = 60;
     if ( command == "LED") {config.LED = bool(cmd_value.toInt()); mqtt_publish(mqtt_pathtele, "LED", String(config.LED));}
     if ( command == "TELNET") { config.TELNET = bool(cmd_value.toInt()); storage_write(); telnet_setup(); }
     if ( command == "OTA") { config.OTA = bool(cmd_value.toInt()); storage_write(); ESPRestart(); }
     if ( command == "NTP") if (bool(cmd_value.toInt()) == true) { getNTPtime(); mqtt_publish(mqtt_pathtele, "DateTime", String(curDateTime()));}
+#ifndef ESP8285
     if ( command == "WEB") { config.WEB = bool(cmd_value.toInt()); storage_write(); web_setup(); }
+#endif
     if ( command == "DHCP") { config.DHCP = bool(cmd_value.toInt()); storage_write(); wifi_connect(); }
     if ( command == "STAMode") { config.STAMode = bool(cmd_value.toInt()); storage_write(); wifi_connect(); }
     if ( command == "APMode") { config.APMode = bool(cmd_value.toInt()); storage_write(); wifi_connect(); }
@@ -92,6 +94,10 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
             storage_write();
             mqtt_publish(mqtt_pathtele, "Battery", String(getBattLevel(),0));
        }
+    if ( command == "HW_Module") {
+            config.HW_Module = bool(cmd_value.toInt());
+            storage_write();
+        }
 
     // Standard Actuators/Actions 
     if ( command == "Level") LEVEL = (uint)abs(cmd_value.toInt());
@@ -108,7 +114,9 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
 
     if (config.DEBUG) {
         storage_print();
-        Serial.print("Current Local Date / Time: " + curDateTime());
+        if (BattPowered) { Serial.printf("Power: BATT  -  Level: %.0f\t", getBattLevel()); }
+        else { Serial.printf("Power: MAINS\t"); }
+        Serial.print("Current Date/Time: " + curDateTime());
         Serial.printf("\t NTP Sync: %d\n", NTP_Sync);
     }
 }

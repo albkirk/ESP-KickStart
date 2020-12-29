@@ -49,11 +49,18 @@ void send_attributes(String param) {
 
 void send_status_attributes(String param) {
     attributes_doc.clear();
+    attributes_doc["CPUClock"]          = CPU_Clock();                          // CPU Clock
     attributes_doc["Boot"]              = ESPWakeUpReason();                    // Boot Reason
     attributes_doc["IP"]                = WiFi.localIP().toString();            // Device IP address
     attributes_doc["Location"]          = config.Location;                      // Device Location
     attributes_doc["DEEPSleep"]         = config.DEEPSLEEP;                     // DEEPSleep status
     attributes_doc["SLEEPTime"]         = config.SLEEPTime;                     // DEEPSleep time
+
+    #ifdef IP5306
+        attributes_doc["Charging"]          = isCharging();                         // Batt charging
+        attributes_doc["FullCharged"]       = isChargeFull();                       // Batt fully Charged
+    #endif
+
     if (!BattPowered) {
         attributes_doc["APMode"]        = config.APMode;                        // APMode status
         attributes_doc["WEB"]           = config.WEB;                           // WEB status

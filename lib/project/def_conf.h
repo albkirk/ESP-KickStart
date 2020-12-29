@@ -1,26 +1,32 @@
 // -- PLATFORM Selection --
-// #define ESP32                                        // already defined elsewhere...
-#undef ESP8266                                          // To make sure it is not used somewhere... 
+//#define ESP32                                         // already defined elsewhere...
+//#define ESP8266                                       // already defined somewhere...
+//#define ESP8285                                         // ESP8285 chip requires reduced MEM space (ex.: remove WEB page)  
+//#undef ESP8266                                          // To make sure it is not used somewhere... 
+#undef ESP32                                            // To make sure it is not used somewhere... 
 
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"               // Hardware brand name
-#define MODELName           "GenBox_32"                 // Hardware model name
-#define SWVer               "12.15"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define MODELName           "GenBoxESP"                 // Hardware model name
+#define SWVer               "12.17"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- GPIO to Function Assignment --
-#define LED_ESP             13                          // ESP32=22, T-Call=13, -1 means NOT used!
+#define LED_ESP              2                          // 8266=2, ESP32=22, T-Call=13, -1 means NOT used!
 #define BUZZER              -1                          // (Active) Buzzer pin. Suggest to use pin 0. -1 means NOT used!
-#define Ext1WakeUP          14                          // External Wake Up pin. (connected to GND, with Parallel Cap).  -1 means NOT used!
-#define Def_Config          18                          // Return to Default configuration. -1 means NOT used! 
+#define Ext1WakeUP          -1                          // External Wake Up pin. (connected to GND, with Parallel Cap).  -1 means NOT used!
+#define Def_Config          -1                          // Return to Default configuration. -1 means NOT used! 
+#define BUT_A               -1                          // Button A INPUT pin (used in buttons.h)
+#define BUT_B               -1                          // Button B INPUT pin (used in buttons.h)
+#define BUT_C               -1                          // Button C INPUT pin (used in buttons.h)
 
 // -- Power Source & Battery Level --
 bool BattPowered =          true;                       // Is the device battery powered?
-#define Batt_L_Thrs         26                          // Battery level threshold [0%-100%] (before slepping forever).
+#define Batt_L_Thrs         15                          // Battery level threshold [0%-100%] (before slepping forever).
 #define Using_ADC           true                        // will this device use the ADC? (if not, ES8266 will measure the internal voltage)
 
 // -- I2C PIN Definition --
-#define SDAPIN              21                          // I2C SDA PIN. T-Call=21, -1 means NO SDA used!
-#define SCKPIN              22                          // I2C SCK PIN. T-Call=22, -1 means NO SCK used!
+#define SDAPIN              -1                          // 8266=4, ESP32=21, -1 means NO SDA used!
+#define SCKPIN              -1                          // 8266=5, ESP32=22, -1 means NO SCK used!
 
 // -- DHT Definition --
 #define DHTTYPE              2                          // use 1 for "DHT11", 2 for "DHT22", or 3 for "AM2320" to select the DHT Model
@@ -30,16 +36,16 @@ bool BattPowered =          true;                       // Is the device battery
 // Module selection
 //#define TINY_GSM_MODEM_SIM7020                        // SIMCOM 7020 module. 
 #define TINY_GSM_MODEM_SIM800                           // SIMCOM 800 module. TTGo T-Call module uses this chip
-#define IP5306                                          // Power Management chip. TTGo T-Call module uses this.
+//#define IP5306                                          // Power Management chip. TTGo T-Call module uses this.
 // Modem PINs
-#define MODEM_PWKEY          4                          // T-Call=4, SIM7020E=14, -1 means NOT used!
-#define MODEM_RST            5                          // T-Call=5, -1 means NOT used!
-#define MODEM_POWER_ON      23                          // T-Call=23, -1 means NOT used!
-#define MODEM_RX            26                          // T-Call=26, SIM7020E=4, -1 means NOT used!
-#define MODEM_TX            27                          // T-Call=27, SIM7020E=5, -1 means NOT used!
-#define GPS_RX              32                          // T-Call=32, ESP8266=14, -1 means NOT used!
-#define GPS_TX              33                          // T-Call=33, ESP8266=12, -1 means NOT used!
-#define GPS_SW              12                          // Pin for the MOFFET based GPS power switch. -1 means NOT used!
+#define MODEM_PWKEY         -1                          // T-Call=4, SIM7020E=14, -1 means NOT used!
+#define MODEM_RST           -1                          // T-Call=5, -1 means NOT used!
+#define MODEM_POWER_ON      -1                          // T-Call=23, -1 means NOT used!
+#define MODEM_RX            -1                          // T-Call=26, SIM7020E=4, -1 means NOT used!
+#define MODEM_TX            -1                          // T-Call=27, SIM7020E=5, -1 means NOT used!
+#define GPS_RX              -1                          // T-Call=32, ESP8266=14, -1 means NOT used!
+#define GPS_TX              -1                          // T-Call=33, ESP8266=12, -1 means NOT used!
+#define GPS_SW              -1                          // Pin for the MOFFET based GPS power switch. -1 means NOT used!
 
 
 void config_defaults() {
@@ -95,7 +101,7 @@ void config_defaults() {
     config.LOWER_LEVEL = 10;                              // level where blinds should stay when pressing double DN
     config.MIN_TRAVEL = 0;                                // Time reference for fully DN position
     config.MAX_TRAVEL = 17000;                            // Time required to go from fully DN to fully UP
-    config.Voltage_Multiplier = 326341.66;                // Unit: us/V
-    config.Current_Multiplier = 21182.61;                 // Unit: us/A
-    config.Power_Multiplier = 792008.54;                  // Unit: us/W
+    config.Voltage_Multiplier = 256000;                   // Unit: us/V
+    config.Current_Multiplier =  23000;                   // Unit: us/A
+    config.Power_Multiplier   = 678000;                   // Unit: us/W
 }

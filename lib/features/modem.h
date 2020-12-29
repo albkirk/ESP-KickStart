@@ -27,14 +27,14 @@ static const String RegStatus_Name[] = {
     "REG_OK_ROAMING"                // 5
 };
 
-#define Modem_WEB                                   // Flag to load Modem Page on WEB Service
+#define Modem_WEB_TELNET                            // Flag to load WEB and TELNET Services
 #define TINY_GSM_USE_GPRS true
 #define TINY_GSM_USE_WIFI false
 #define TINY_GSM_RX_BUFFER 1024                     // Set RX buffer to 1Kb
 
 #ifdef ESP8266
     #include "SoftwareSerial.h"                     // for use with ESP8266
-    SoftwareSerial SerialAT();                      // for use with ESP8266
+    SoftwareSerial SerialAT(MODEM_RX, MODEM_TX);    // for use with ESP8266
 
 #elif ESP32
     HardwareSerial serialGsm(1);                    // for use with ESP32 (1/2)
@@ -46,9 +46,9 @@ static const String RegStatus_Name[] = {
 
 #include <TinyGsmClient.h>
 TinyGsm modem(SerialAT);                            // Modem to Serial commnunication instance
-TinyGsmClient modemWebClient(modem);                   // Modem WEB client instance (for HTTP or MQTT usage)
+TinyGsmClient modemWebClient(modem);                // Modem WEB client instance (for HTTP or MQTT usage)
 
-int Modem_state = 0;                                 // Modem State
+int Modem_state = 0;                                // Modem State
 String ModemName;                                   // Will get it using modem.getModemName();
 String ModemInfo;                                   // will get it using modem.getModemInfo();
 String ModemIMEI;                                   // will get it using modem.getIMEI();
@@ -88,11 +88,25 @@ bool MODEM_Set_PIN() {
 }
 
 void MODEM_Info() {
-    // ModemName   = modem.getModemName();
-    ModemInfo   = modem.getModemInfo();
-    ModemIMEI   = modem.getIMEI();
-    SIMCardIMSI = modem.getIMSI();
-    SIMCardCCID = modem.getSimCCID();
+    if (Modem_state >= 1) {
+        // ModemName   = modem.getModemName();
+        ModemInfo   = modem.getModemInfo();
+        ModemIMEI   = modem.getIMEI();
+    }
+    else {
+        ModemInfo   = "";
+        ModemIMEI   = "";
+    }
+    if (Modem_state >= 1 && modem.getSimStatus() > 0) {
+        SIMCardIMSI = modem.getIMSI();
+        SIMCardCCID = modem.getSimCCID();
+    }
+    else {
+        SIMCardIMSI = "";
+        SIMCardCCID = "";
+    }
+    telnet_println("ModemInfo: " + ModemInfo + "  -  ModemIMEI: " + ModemIMEI);
+    telnet_println("SIMCardIMSI: " + SIMCardIMSI + "  -  SIMCardCCID: " + SIMCardCCID);
 }
 
 bool MODEM_ON(uint32_t time_delay = 1000) {
@@ -129,14 +143,12 @@ bool MODEM_ON(uint32_t time_delay = 1000) {
 }
 
 void MODEM_OFF() {
-    if(modem.radioOff()) {
-        //if (config.DEBUG) Serial.println("Radio off");
-        if (MODEM_PWKEY>=0)    digitalWrite(MODEM_PWKEY, HIGH);   // turn of modem in case its ON from previous state
-        if (MODEM_POWER_ON>=0) digitalWrite(MODEM_POWER_ON, LOW); // turn of modem psu in case its ON from previous state
-        if (MODEM_RST>=0)      digitalWrite(MODEM_RST, HIGH);     // Keep IRQ high ? (or not to save power?)
-        telnet_println("Modem Power OFF");
-        Modem_state = 0;
-    }
+    if(!modem.radioOff()) telnet_println("Error turning Radio OFF");
+    if (MODEM_PWKEY>=0)    digitalWrite(MODEM_PWKEY, LOW);   // turn of modem in case its ON from previous state
+    if (MODEM_POWER_ON>=0) digitalWrite(MODEM_POWER_ON, LOW); // turn of modem psu in case its ON from previous state
+    if (MODEM_RST>=0)      digitalWrite(MODEM_RST, HIGH);     // Keep IRQ high ? (or not to save power?)
+    telnet_println("Modem Power OFF");
+    Modem_state = 0;
 }
 
 bool MODEM_Connect() {
@@ -170,6 +182,7 @@ bool MODEM_Disconnect() {
         else Modem_state = 0;
     }
     else if (config.DEBUG) Serial.println("MODEM_Disconnect() error");
+    telnet_println("Modem State: " + Modem_state_Name[Modem_state] + "\t REG State: " + RegStatus_string(modem.getRegistrationStatus()));
     return res;
 }
 
