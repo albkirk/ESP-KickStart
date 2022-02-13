@@ -28,15 +28,15 @@
 #include <telnet.h>
 #include <ntp.h>
 #include <mqtt.h>
-#include <hassio.h>
 #ifndef ESP8285
     #include <ota.h>
 #endif
 #include <project.h>
+#include <global.h>
+#include <hassio.h>
 #ifndef ESP8285
     #include <web.h>
 #endif
-#include <global.h>
 #include <actions.h>                        // Added later because functions from project are called here.
 
 
@@ -45,8 +45,8 @@ void setup() {
     wifi_disconnect();
 
   // Start Serial interface
-      Serial.begin(74880);                  // This odd baud speed will shows ESP8266 boot diagnostics too.
-      //Serial.begin(115200);               // For faster communication use 115200
+      //Serial.begin(74880);                  // This odd baud speed will shows ESP8266 boot diagnostics too.
+      Serial.begin(115200);                 // For faster communication use 115200
 
       Serial.println("");
       Serial.println("Hello World!");

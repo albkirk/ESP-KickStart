@@ -11,6 +11,20 @@
 
 bool Load_Default = true;                   // Will it Load Default values? It means it's running for first time.  
 
+#ifndef custo_strDateTime
+struct strDateTime                          // Date & Time Struture for usage on NTP, and Alarm Clock
+{
+  byte hour;
+  byte minute;
+  byte second;
+  int year;
+  byte month;
+  byte day;
+  byte wday;
+};
+#endif
+
+
 
 //
 //  AUXILIAR functions to handle EEPROM
@@ -112,6 +126,10 @@ struct __attribute__((__packed__)) strConfig {
   double Voltage_Multiplier;
   double Current_Multiplier;
   double Power_Multiplier;
+  char InitColor[10];
+  byte Volume;
+  bool Alarm_State;
+  strDateTime AlarmDateTime;  
 } config;
 
 
@@ -136,6 +154,7 @@ void storage_print() {
       Serial.printf("Gateway: %d.%d.%d.%d\n", config.Gateway[0],config.Gateway[1],config.Gateway[2],config.Gateway[3]);
       Serial.printf("DNS IP: %d.%d.%d.%d\t", config.DNS_IP[0],config.DNS_IP[1],config.DNS_IP[2],config.DNS_IP[3]);
     }
+    Serial.printf("MODEM APN: %s  -  User: %s  -  Pass: %s  -  PIN: %s\n", config.APN, config.MODEM_User, config.MODEM_Password, config.SIMCardPIN);
     Serial.printf("MQTT Server: %s  -  Port: %ld  -  Secure: %d  -  ", config.MQTT_Server, config.MQTT_Port, config.MQTT_Secure);
     Serial.printf("MQTT User: %s  -  MQTT Pass: %s\n", config.MQTT_User, config.MQTT_Password);
     Serial.printf("NTP Server Name: %s\t", config.NTPServerName);

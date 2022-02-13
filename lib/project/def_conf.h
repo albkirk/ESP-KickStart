@@ -2,13 +2,13 @@
 //#define ESP32                                         // already defined elsewhere...
 //#define ESP8266                                       // already defined somewhere...
 //#define ESP8285                                         // ESP8285 chip requires reduced MEM space (ex.: remove WEB page)  
-//#undef ESP8266                                          // To make sure it is not used somewhere... 
-#undef ESP32                                            // To make sure it is not used somewhere... 
+#undef ESP8266                                          // To make sure it is not used somewhere... 
+//#undef ESP32                                            // To make sure it is not used somewhere... 
 
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"               // Hardware brand name
 #define MODELName           "GenBoxESP"                 // Hardware model name
-#define SWVer               "12.17"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "12.19"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- GPIO to Function Assignment --
 #define LED_ESP              2                          // 8266=2, ESP32=22, T-Call=13, -1 means NOT used!
@@ -18,11 +18,22 @@
 #define BUT_A               -1                          // Button A INPUT pin (used in buttons.h)
 #define BUT_B               -1                          // Button B INPUT pin (used in buttons.h)
 #define BUT_C               -1                          // Button C INPUT pin (used in buttons.h)
+#define T_Left              -1                          // Touch button Left  pin. -1 means NOT used! 
+#define T_Right             -1                          // Touch button Right pin. -1 means NOT used! 
+
+//TouchPins[] = { T0, T1, T2, T3, T4, T5, T6, T7, T8, T9 };  // ALL TOUCH values available!
+//TouchPins[] = { 04, 00, 02, 15, 13, 12, 14, 27, 33, 32 };  // ALL TOUCH PIN available!
 
 // -- Power Source & Battery Level --
 bool BattPowered =          true;                       // Is the device battery powered?
 #define Batt_L_Thrs         15                          // Battery level threshold [0%-100%] (before slepping forever).
 #define Using_ADC           true                        // will this device use the ADC? (if not, ES8266 will measure the internal voltage)
+
+// -- SPI PIN Definition --
+#define MISO_PIN            -1                          // SPI MISO pin,TTGoTS->-1, -1 means NOT used!
+#define MOSI_PIN            -1                          // SPI MOSI pin,TTGoTS->23, -1 means NOT used!
+#define CLK_PIN             -1                          // SPI CLK pin, TTGoTS-> 5, -1 means NOT used!
+#define CS_PIN              -1                          // SPI CS pin,  TTGoTS->16, -1 means NOT used!
 
 // -- I2C PIN Definition --
 #define SDAPIN              -1                          // 8266=4, ESP32=21, -1 means NO SDA used!
@@ -46,6 +57,15 @@ bool BattPowered =          true;                       // Is the device battery
 #define GPS_RX              -1                          // T-Call=32, ESP8266=14, -1 means NOT used!
 #define GPS_TX              -1                          // T-Call=33, ESP8266=12, -1 means NOT used!
 #define GPS_SW              -1                          // Pin for the MOFFET based GPS power switch. -1 means NOT used!
+
+// -- DISPLAY Definition --
+//#define TFT                                           // TFT Display based on Driver ST7735 used on TTGo TS
+//#define EPAPER                                        // E-Paper Display model GDEH0213B73 used on TTGo T5 v2.3
+
+#define BACKLIGHT           -1                          // Display backlight pin,TTGoTS->-1, -1 means NOT used!
+#define RST_PIN             -1                          // Display RST pin,      TTGoTS-> 9, -1 means NOT used!
+#define DC_PIN              -1                          // Display DC pin,       TTGoTS->17, -1 means NOT used!
+#define BUSY_PIN            -1                          // Display BUSY pin,     TTGoTS->-1, -1 means NOT used!
 
 
 void config_defaults() {
@@ -81,7 +101,7 @@ void config_defaults() {
     strcpy(config.MQTT_User, "admin");                    // MQTT Broker username
     strcpy(config.MQTT_Password, "admin");                // MQTT Broker password
     strcpy(config.UPDATE_Server, "iothubna.hopto.org");   // UPDATE Server (URL or IP)
-    config.UPDATE_Port = 1880;                            // UPDATE Server TCP port
+    config.UPDATE_Port = 8123;                            // UPDATE Server TCP port
     strcpy(config.UPDATE_User, "user");                   // UPDATE Server username
     strcpy(config.UPDATE_Password, "1q2w3e4r");           // UPDATE Server password
     strcpy(config.SIMCardPIN, "1234");                    // SIM card PIN
@@ -104,4 +124,8 @@ void config_defaults() {
     config.Voltage_Multiplier = 256000;                   // Unit: us/V
     config.Current_Multiplier =  23000;                   // Unit: us/A
     config.Power_Multiplier   = 678000;                   // Unit: us/W
+    strcpy(config.InitColor, "#EEEEEEFF");                // RGB Initial color (when powering ON)
+    config.Volume = 100;                                  // Speaker volume [0-100%].
+    config.Alarm_State = false;                           // Alarm state (true -> Ring / False -> Not Ring)
+    config.AlarmDateTime = {0, 1, 0, 0, 0, 0, 7};         // Alarm DateTime structure
 }

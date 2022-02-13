@@ -152,7 +152,7 @@ void myconfigTime(const char* tz, const char* server1, const char* server2, cons
     configTime(tz, server1, server2, server3);
 }
 
-void wifi_disconnect() {
+void esp_wifi_disconnect() {
     WiFi.mode(WIFI_SHUTDOWN);
 }
 

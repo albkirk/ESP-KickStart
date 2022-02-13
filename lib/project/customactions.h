@@ -8,6 +8,9 @@ void custom_mqtt(String command, String cmd_value) {
     hassio_attributes();
     //ambient_data();
     telnet_println("Flash: " + Flash_Size() + "  -  CPU Clock: " + String(CPU_Clock()) + " MHz  -  WiFi State: " + WIFI_state_Name[WIFI_state] + "  -  MQTT State: " + MQTT_state_string());
+    #ifdef Modem_WEB_TELNET
+        telnet_println("Modem State: " + Modem_state_Name[Modem_state] + "\t REG State: " + RegStatus_string(modem.getRegistrationStatus()));
+    #endif
   }
   if ( command == "Config" && bool(cmd_value.toInt())) {
     mqtt_publish(mqtt_pathtele, "OTA", String(config.OTA));
@@ -21,6 +24,9 @@ void custom_mqtt(String command, String cmd_value) {
   
   if ( command == "CPU_Boost" ) { CPU_Boost(bool(cmd_value.toInt())); delay(10); telnet_println("CPU Clock: " + String(CPU_Clock()) + " MHz"); }
   if ( command == "CPU_Clock" && bool(cmd_value.toInt())) telnet_println("CPU Clock: " + String(CPU_Clock()) + " MHz");
+  #ifdef ESP8266
+      if ( command == "PHY_Mode") {WiFi.setPhyMode((WiFiPhyMode_t)cmd_value.toInt()); wifi_connect(); }
+  #endif
   //if ( command == "send_Telemetry" && bool(cmd_value.toInt())) { gps_update(); print_gps_data(); send_Telemetry(); }
 
   if ( command == "BattPowered") BattPowered = bool(cmd_value.toInt());
@@ -47,7 +53,7 @@ void custom_mqtt(String command, String cmd_value) {
 
 void custom_update(){
     yield();
-//    mqtt_dump_data(mqtt_pathtele, "Telemetry");
+    //mqtt_dump_data(mqtt_pathtele, "Telemetry");
 }
 
 

@@ -2,7 +2,7 @@
 
 
 bool HTTPUpdate(bool sketch=true){
-    String URLString = "http://" + String(config.UPDATE_Server) + ":" + String(config.UPDATE_Port) + "/Firmware/" + BRANDName + "/" + MODELName;
+    String URLString = "http://" + String(config.UPDATE_Server) + ":" + String(config.UPDATE_Port) + "/local/Firmware/" + BRANDName + "/" + MODELName + "/firmware_v" + String(atoi(SWVer)+1) + ".bin";
     const char * updateUrl = URLString.c_str();
     String msg;
     t_httpUpdate_return ret;

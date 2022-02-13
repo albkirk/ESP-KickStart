@@ -9,10 +9,10 @@
 #define GPS_WEB                                     // Flag to load GPS Page on WEB Service
 #define GPS_cycle 1100                              // Setting 1000 milisecond by default -- it Depends on what's configured on GPS module!
 #define GPS_Update 10                               // Value (in Seconds) to update GPS Data variables
-static const uint32_t GPSBaud = 9600;
-uint32_t GPS_Age, GPS_Sat;
-double GPS_Lat, GPS_Lng, GPS_Alt, GPS_Course, GPS_Speed; // GPS data: Satellites, Latitude, Longitude, Altitude, Course and Speed
-bool GPS_Valid = false;
+#define GPSBaud 9600                                // GPS Serial baudrate
+static uint32_t GPS_Age, GPS_Sat, GPS_Fix_Time=0;
+static double GPS_Lat, GPS_Lng, GPS_Alt, GPS_Course, GPS_Speed, GPS_HDOP; // GPS data: Satellites, Latitude, Longitude, Altitude, Course, Speed and HDOP
+static bool GPS_Valid = false;
 
 // The TinyGPS++ object
 TinyGPSPlus gps;
@@ -32,24 +32,25 @@ TinyGPSPlus gps;
 
 // This custom version of delay() ensures that the gps object
 // is being "fed".
-static void gps_update(unsigned long ms = GPS_cycle)
-{
+static void gps_update(unsigned long ms = GPS_cycle) {
   unsigned long start = millis();
   do 
   {
-    while (ss.available())
-      gps.encode(ss.read());
+    while (ss.available()) gps.encode(ss.read());
+    yield();
   } while (millis() - start < ms);
 
-  if(gps.location.isUpdated()) {
+  if(gps.location.isValid()) {
         GPS_Valid = true;
         GPS_Age = gps.satellites.age();
         GPS_Sat = gps.satellites.value();
         GPS_Lat = gps.location.lat();
         GPS_Lng = gps.location.lng();
+        yield();
         GPS_Alt = gps.altitude.meters();
         GPS_Course = gps.course.deg();
         GPS_Speed = gps.speed.kmph();
+        GPS_HDOP = gps.hdop.hdop();
   }
   else {
         GPS_Valid = false;
@@ -60,16 +61,17 @@ static void gps_update(unsigned long ms = GPS_cycle)
         GPS_Alt = 0;
         GPS_Course = 0;
         GPS_Speed = 0;
+        GPS_HDOP = 0;
   }
 }
 
 bool gps_detected() {
     unsigned long starttime = millis();
-    while (!gps.satellites.isUpdated() && millis() - starttime < 2000)
+    do
     {
         gps_update();
-    }
-    if (!gps.satellites.isUpdated()) {
+    } while (!gps.satellites.isValid() && millis() - starttime < 2000);
+    if (!gps.satellites.isValid()) {
         telnet_println("No GPS data received: check wiring");
         return false;
     }
@@ -81,25 +83,36 @@ bool gps_detected() {
 
 }
 
+void gps_on() {
+    if (GPS_SW>=0) digitalWrite(GPS_SW, HIGH);                  // GPS Power ON
+    // config.HW_Module = true;
+    telnet_println("GPS power ON");
+}
+
+void gps_off() {
+    if (GPS_SW>=0) digitalWrite(GPS_SW, LOW);                   // GPS Power OFF
+    // config.HW_Module = true;
+    telnet_println("GPS power OFF");
+}
 
 void gps_start() {
     unsigned long starttime = millis();
-    if (GPS_SW>=0) digitalWrite(GPS_SW, HIGH);                  // GPS Power on
-    // config.HW_Module = true;
-    telnet_println("GPS power ON");
+    gps_on();
     if(gps_detected()) {
         while (!GPS_Valid && millis() - starttime < Cold_Start) // Worst scenario is cold_Starting
         {
             gps_update();
         }   
-        if (GPS_Valid) telnet_println("GPS FIXed in " + String((millis() - starttime)/1000) + " sec.");
+        if (GPS_Valid) {
+            GPS_Fix_Time = (millis() - starttime)/1000;
+            telnet_println("GPS FIXed in " + String(GPS_Fix_Time) + " sec.");
+        }
+        else GPS_Fix_Time = 0;
     }
 }
 
 void gps_stop() {
-    if (GPS_SW>=0) digitalWrite(GPS_SW, LOW);                   // GPS Power off
-    // config.HW_Module = false;
-    telnet_println("GPS power OFF");
+    gps_off();
 }
 
 void gps_setup() {
@@ -107,7 +120,7 @@ void gps_setup() {
 
     if (GPS_SW>=0) {
         pinMode(GPS_SW, OUTPUT);
-        digitalWrite(GPS_SW, LOW);                              // Init GPS Power off
+        //digitalWrite(GPS_SW, LOW);                              // Init GPS Power off
     }
 
     #ifdef ESP8266

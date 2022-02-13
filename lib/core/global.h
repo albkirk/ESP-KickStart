@@ -19,7 +19,7 @@ float Batt_OK_check() {                     // If LOW Batt, it will DeepSleep fo
         //#ifdef IP5306
         //    setPowerBoostKeepOn(false);
         //#endif
-        flash_LED(5);
+        flash_LED(10);
         delay(100);
         GoingToSleep(0, curUnixTime());   // Sleep forever
         return Batt_Level;                // Actually, it will never return !!
@@ -31,7 +31,7 @@ void status_report() {
     if (BattPowered) {
          float Battery = Batt_OK_check();
          mqtt_publish(mqtt_pathtele, "Status", "Battery");
-         mqtt_publish(mqtt_pathtele, "Battery", String(Battery,0));
+         if (Battery >=0) mqtt_publish(mqtt_pathtele, "Battery", String(Battery,0));
 
     }
     else mqtt_publish(mqtt_pathtele, "Status", "Mains");

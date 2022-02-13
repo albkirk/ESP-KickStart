@@ -148,7 +148,7 @@ void myconfigTime(const char* tz, const char* server1, const char* server2, cons
     configTzTime(tz, server1, server2, server3);
 }
 
-void wifi_disconnect() {
+void esp_wifi_disconnect() {
     WiFi.mode(WIFI_MODE_NULL);
 }
 
@@ -227,6 +227,7 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
 
 // ESP32
 void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
+    uint64_t calculate_sleeptime;
   // Store counter to the Preferences
     preferences.putULong("UTCTime", currUTime);
     keep_IP_address();
@@ -254,7 +255,11 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
         ulp_action(1000000);                                       // 10 second loop
     }
     
-    if (Time_minutes > 0) esp_sleep_enable_timer_wakeup(uint64_t(Time_minutes) * 60ULL  * 1000000ULL);  // time in minutes converted to microseconds
+    if (Time_minutes > 0) {
+        calculate_sleeptime = uint64_t( ((Time_minutes * 60000UL) - millis()%(Time_minutes * 60000UL)) ) * 1000ULL;
+        //Serial.printf("calculate_sleeptime :%llu\n", calculate_sleeptime);
+        esp_sleep_enable_timer_wakeup(calculate_sleeptime);  // time in minutes converted to microseconds
+    }
     esp_deep_sleep_start();
 }
 
@@ -274,7 +279,7 @@ float getBattLevel() {                                      // return Battery le
     for(int i = 0; i < Number_of_measures; i++) {
         tempval = float(getBatteryLevel());
         if (tempval > value) value = tempval;
-        delay(100);
+        delay(10);
     }
     return value;
 #else

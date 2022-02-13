@@ -52,12 +52,15 @@ void telnet_stop() {
 
 
 void telnet_setup() {
-    if (config.TELNET){
-	   //start Telnet service
-	   telnetServer.begin();
-	   telnetServer.setNoDelay(true);
-	   if (config.DEBUG) Serial.println("Telnet Service READY.");
-	   bufferPrint.reserve(BUFFER_PRINT);
-    }
-    else telnet_stop();
+    if (WIFI_state != WL_CONNECTED) telnet_println( "Telnet ERROR! ==> NO WiFi connection!" );
+    else {
+		if (config.TELNET){
+	   		//start Telnet service
+	   		telnetServer.begin();
+	   		telnetServer.setNoDelay(true);
+	   		if (config.DEBUG) Serial.println("Telnet Service READY.");
+	   		bufferPrint.reserve(BUFFER_PRINT);
+    	}
+    	else telnet_stop();
+	}
 }

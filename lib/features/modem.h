@@ -52,8 +52,10 @@ int Modem_state = 0;                                // Modem State
 String ModemName;                                   // Will get it using modem.getModemName();
 String ModemInfo;                                   // will get it using modem.getModemInfo();
 String ModemIMEI;                                   // will get it using modem.getIMEI();
+String ModemIP = "";                                // will get it using modem.getLocalIP();
 String SIMCardIMSI;                                 // SIM Card IMSI
 String SIMCardCCID;                                 // SIM Card CCID
+
 
 
 
@@ -160,7 +162,8 @@ bool MODEM_Connect() {
         if(res) {
             Modem_state = 3;
             Celular_Connected = true;
-            //Serial.println("MODEM_Connect");
+            ModemIP = modem.getLocalIP();
+            if (config.DEBUG) Serial.println("MODEM_Connect with Local IP: " + ModemIP);
         }
         else if (config.DEBUG) Serial.println("MODEM_Connect() error");
     }
@@ -180,6 +183,7 @@ bool MODEM_Disconnect() {
         if ( regtemp == 1 || regtemp == 5 ) Modem_state = 2;
         else if (regtemp != -1 ) Modem_state = 1;
         else Modem_state = 0;
+        ModemIP = "";
     }
     else if (config.DEBUG) Serial.println("MODEM_Disconnect() error");
     telnet_println("Modem State: " + Modem_state_Name[Modem_state] + "\t REG State: " + RegStatus_string(modem.getRegistrationStatus()));

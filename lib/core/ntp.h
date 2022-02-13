@@ -1,17 +1,5 @@
 #define LEAP_YEAR(Y) ( ((1970+Y)>0) && !((1970+Y)%4) && ( ((1970+Y)%100) || !((1970+Y)%400) ) )
 
-#ifndef custo_strDateTime
-struct strDateTime
-{
-  byte hour;
-  byte minute;
-  byte second;
-  int year;
-  byte month;
-  byte day;
-  byte wday;
-};
-#endif
 
 static strDateTime DateTime;                  // Global DateTime structure
 strDateTime LastDateTime = {25, 61, 61, 1, 13, 32, 8};
@@ -115,7 +103,7 @@ void getNTPtime(unsigned long timeout_sync = 1000UL) {
     NTP_Sync = false;
     unsigned long NTPTime = 0;                        // Resetting value to 0
 
-    if (WIFI_state != WL_CONNECTED && !Celular_Connected) telnet_println( "NTP ERROR! ==> NO Internet connection!" );
+    if (WIFI_state != WL_CONNECTED) telnet_println( "NTP ERROR! ==> NO WiFi connection!" );
     else {
         myconfigTime("TZ_Etc_UTC", config.NTPServerName, config.NTPServerName, config.NTPServerName);
         unsigned long start_sync = millis();

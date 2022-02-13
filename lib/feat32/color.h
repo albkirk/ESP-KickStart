@@ -284,6 +284,9 @@ void color_loop() {
       //if (String(Color) != String(LastColor)) if (color_set(Color)) mqtt_publish(mqtt_pathtele(), "Color", Color);
       switch (EFX) {
           case 0:
+              for (size_t i = 0; i < NEOPixelsNUM; i++) {
+                NEOcolor_set(BLACK, i);
+              }
               break;
           case 1:
               color_Auto();

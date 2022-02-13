@@ -51,7 +51,10 @@ void send_status_attributes(String param) {
     attributes_doc.clear();
     attributes_doc["CPUClock"]          = CPU_Clock();                          // CPU Clock
     attributes_doc["Boot"]              = ESPWakeUpReason();                    // Boot Reason
-    attributes_doc["IP"]                = WiFi.localIP().toString();            // Device IP address
+    if (WIFI_state == WL_CONNECTED) attributes_doc["IP"] = WiFi.localIP().toString(); // WiFi IP address
+    #ifdef Modem_WEB_TELNET
+        if (Celular_Connected) attributes_doc["IP"] = ModemIP;                  // Modem IP address
+    #endif
     attributes_doc["Location"]          = config.Location;                      // Device Location
     attributes_doc["DEEPSleep"]         = config.DEEPSLEEP;                     // DEEPSleep status
     attributes_doc["SLEEPTime"]         = config.SLEEPTime;                     // DEEPSleep time
@@ -79,7 +82,7 @@ void send_switch_attributes(String param) {
 }
 
 // HASSIO Configuration registration
-void config_entity(String component = "sensor", String device_class = "Battery", String param = "", String device = "", String mqtt_path_stat = mqtt_pathtele) {
+void config_entity(String component = "sensor", String device_class = "Battery", String param = "", String device = "", String mqtt_path_stat = mqtt_pathtele, bool RetainCmd = false) {
     //"sensor" have well defined classes: battery, humidity, illuminance, signal_strength, temperature, power, pressure, etc
     if(param == "") param = device_class;       // use the "device_class" as "param" value
 
@@ -134,6 +137,10 @@ void config_entity(String component = "sensor", String device_class = "Battery",
             //discovery_doc["json_attr_t"] = mqtt_path_stat + "attr_" + param;     // Attributes topic
             discovery_doc["icon"] = "hass:power";
         }
+        if (param == "SpeedoMeter") { 
+            discovery_doc["icon"] = "hass:car-cruise-control";
+            discovery_doc["retain"]     = true;
+        }
         //discovery_doc["stat_off"]     = "0";
         //discovery_doc["stat_on"]      = "1";
         discovery_doc["pl_off"]         = "0";                                      // Payload_off
@@ -151,12 +158,18 @@ void config_entity(String component = "sensor", String device_class = "Battery",
     if(component == "sensor") {
         if(device_class != "none") discovery_doc["device_class"] = device_class;
         
-        if (device == "PowerPlug") discovery_doc["stat_t"] = mqtt_path_stat + device;             // state_topic
+        if (device == "PowerPlug" || device == "Telemetry") discovery_doc["stat_t"] = mqtt_path_stat + device;             // state_topic
         else discovery_doc["stat_t"]         = mqtt_path_stat + param;                            // state_topic
     
         if(param == "Status") discovery_doc["json_attr_t"] = mqtt_path_stat + "attr_" + param;    // Attributes topic
 
         if(param == "Timer" || param == "Timer2") discovery_doc["icon"] = "hass:timer-outline";
+
+        if(param == "Speed") {
+            discovery_doc["unit_of_meas"] = "Km/h";
+            discovery_doc["val_tpl"]      = "{{ value_json.Speed | float }}";
+            discovery_doc["icon"]         = "hass:speedometer";
+        }
 
         if(device_class == "Battery" || device_class == "Humidity" || device_class == "illuminance") {
             discovery_doc["unit_of_meas"] = "%";

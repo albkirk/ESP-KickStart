@@ -24,7 +24,11 @@ Connect to Router with these settings:<br>
 </table>
 </form>
 <hr>
-<strong>Connection State:</strong><div id="connectionstate">N/A</div>
+<strong>Connection State:</strong>
+<table border="0" cellspacing="0" cellpadding="3" style="width:320px" >
+<tr><td><div id="connectionstate">N/A</div></td></tr>
+<tr><td align="left">WiFi Mode :</td><td><span id="x_wlanmode"></span></td></tr>
+<tr><td align="left">RSSI :</td><td><span id="x_wlanRSSI"></span></td></tr></table>
 <hr>
 <strong>Networks:</strong><br>
 <table border="0"  cellspacing="3" style="width:320px" >
@@ -88,7 +92,12 @@ Connect to Router with these settings:<br>
 </table>
 </form>
 <hr>
-<strong>Connection State:</strong><div id="connectionstate">N/A</div>
+<strong>Connection State:</strong>
+<table border="0" cellspacing="0" cellpadding="0" style="width:320px" >
+<tr><td><div id="connectionstate">N/A</div></td></tr>
+<tr><td align="left">WiFi Mode :</td><td><span id="x_wlanmode"></span></td></tr>
+<tr><td align="left">RSSI :</td><td><span id="x_wlanRSSI"></span></td></tr>
+</table>
 <hr>
 <strong>Networks:</strong><br>
 <table border="0"  cellspacing="3" style="width:320px" >
@@ -260,7 +269,7 @@ void send_connection_state_values_html()
     {
      
         
-        Networks = "Found " +String(n) + " Networks<br>";
+        Networks = "Found " + String(n) + " Networks<br>";
         Networks += "<table border='0' cellspacing='0' cellpadding='3'>";
         Networks += "<tr bgcolor='#DDDDDD' ><td><strong>Name</strong></td><td><strong>Quality</strong></td><td><strong>Enc</strong></td><tr>";
         for (int i = 0; i < n; ++i)
@@ -286,7 +295,13 @@ void send_connection_state_values_html()
     }
    
     String values ="";
-    values += "connectionstate|" +  state + "|div\n";
+    values += "connectionstate|" + state + "|div\n";
+    #ifdef ESP8266
+        values += "x_wlanmode|" + WIFI_PHY_Mode_Name[WiFi.getPhyMode()]  + "|div\n";
+    #else
+        values += "x_wlanmode|" + WIFI_PHY_Mode_Name[4]  + "|div\n";
+    #endif
+    values += "x_wlanRSSI|" + String(WiFi.RSSI())  + "|div\n";
     values += "networks|" +  Networks + "|div\n";
     MyWebServer.send ( 200, "text/plain", values);
     Serial.println(__FUNCTION__); 

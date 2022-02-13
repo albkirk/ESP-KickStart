@@ -4,7 +4,6 @@ void ICACHE_RAM_ATTR A_pressed ();
 void ICACHE_RAM_ATTR B_pressed ();
 void ICACHE_RAM_ATTR C_pressed ();
 
-
 // **** Normal code definition here ...
 //#define BUT_A -1                  // Button A INPUT pin. Configure in "def_conf.h"
 //#define BUT_B -1                  // Button B INPUT pin. Configure in "def_conf.h"
@@ -31,7 +30,7 @@ void A_pressed () {
           A_STATUS = true;
           if (NOW - Last_A < Butt_Interval) {
               A_COUNT += 1;
-              Serial.println("Button A pressed " + String(A_COUNT) + "times!");
+              Serial.println("Button A pressed " + String(A_COUNT) + " times!");
           }
           else {
               A_COUNT = 1;
@@ -56,7 +55,7 @@ void B_pressed () {
           B_STATUS = true;
           if (NOW - Last_B < Butt_Interval) {
               B_COUNT += 1;
-              Serial.println("Button B pressed " + String(B_COUNT) + "times!");
+              Serial.println("Button B pressed " + String(B_COUNT) + " times!");
           }
           else {
               B_COUNT = 1;
@@ -81,7 +80,7 @@ void C_pressed () {
           C_STATUS = true;
           if (NOW - Last_C < Butt_Interval) {
               C_COUNT += 1;
-              Serial.println("Button C pressed " + String(C_COUNT) + "times!");
+              Serial.println("Button C pressed " + String(C_COUNT) + " times!");
           }
           else {
               C_COUNT = 1;
@@ -97,7 +96,6 @@ void C_pressed () {
   attachInterrupt(BUT_C, C_pressed, CHANGE);
 }
 
-
 void buttons_setup() {
   if (BUT_A>=0) {
         pinMode(BUT_A, INPUT_PULLUP);
@@ -111,5 +109,4 @@ void buttons_setup() {
         pinMode(BUT_C, INPUT_PULLUP);
         attachInterrupt(BUT_C, C_pressed, CHANGE);
   }
-
 }
