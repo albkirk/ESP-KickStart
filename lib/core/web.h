@@ -84,7 +84,7 @@ String urldecode(String input) // (based on https://code.google.com/p/avr-netino
 #include "Page_MQTT.h"
 #include "Page_Information.h"
 #include "Page_General.h"
-#include "PAGE_Wireless.h"
+#include "Page_Wireless.h"
 #include "Page_FactoryReset.h"
 #include "Page_Save_Quit.h"
 #ifdef Modem_WEB_TELNET

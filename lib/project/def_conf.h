@@ -8,7 +8,7 @@
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"               // Hardware brand name
 #define MODELName           "GenBoxESP"                 // Hardware model name
-#define SWVer               "13.01"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "13.02"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- GPIO to Function Assignment --
 #define LED_ESP              2                          // 8266=2, ESP32=22, T-Call=13, -1 means NOT used!
