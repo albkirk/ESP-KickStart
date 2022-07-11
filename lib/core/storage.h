@@ -161,7 +161,7 @@ void storage_print() {
     Serial.printf("NTP update every %ld minutes.\t", config.Update_Time_Via_NTP_Every);
     Serial.printf("Timezone: %ld  -  DayLight: %d\n", config.TimeZone, config.isDayLightSaving);
 
-    Serial.printf("HW Module: %d  -  Remote Allowed: %d  -  WEB User: %s  -  WEB Pass: %s\n", config.HW_Module, config.Remote_Allow, config.WEB_User, config.WEB_Password);
+    Serial.printf("Debug: %d  -  HW Module: %d  -  Remote Allowed: %d  -  WEB User: %s  -  WEB Pass: %s\n", config.DEBUG, config.HW_Module, config.Remote_Allow, config.WEB_User, config.WEB_Password);
     Serial.printf("SWITCH default: %d  -  Temperature Correction: %.2f  -  Voltage Correction: %.2f\n", config.SWITCH_Default, config.Temp_Corr, config.LDO_Corr);
 }
 

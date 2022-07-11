@@ -1,8 +1,8 @@
 #define BUTTONS_H true
 
-void ICACHE_RAM_ATTR A_pressed ();
-void ICACHE_RAM_ATTR B_pressed ();
-void ICACHE_RAM_ATTR C_pressed ();
+void IRAM_ATTR A_pressed ();
+void IRAM_ATTR B_pressed ();
+void IRAM_ATTR C_pressed ();
 
 // **** Normal code definition here ...
 //#define BUT_A -1                  // Button A INPUT pin. Configure in "def_conf.h"
@@ -30,16 +30,16 @@ void A_pressed () {
           A_STATUS = true;
           if (NOW - Last_A < Butt_Interval) {
               A_COUNT += 1;
-              Serial.println("Button A pressed " + String(A_COUNT) + " times!");
+              telnet_println("Button A pressed " + String(A_COUNT) + " times!");
           }
           else {
               A_COUNT = 1;
-              Serial.println("Button A pressed");
+              telnet_println("Button A pressed");
           };
       }
       else {
           A_STATUS = false;
-          Serial.println("Button A released");
+          telnet_println("Button A released");
       };
   }
   Last_A = NOW;
@@ -55,16 +55,16 @@ void B_pressed () {
           B_STATUS = true;
           if (NOW - Last_B < Butt_Interval) {
               B_COUNT += 1;
-              Serial.println("Button B pressed " + String(B_COUNT) + " times!");
+              telnet_println("Button B pressed " + String(B_COUNT) + " times!");
           }
           else {
               B_COUNT = 1;
-              Serial.println("Button B pressed");
+              telnet_println("Button B pressed");
           };
       }
       else {
           B_STATUS = false;
-          Serial.println("Button B released");
+          telnet_println("Button B released");
       };
   }
   Last_B = NOW;
@@ -80,16 +80,16 @@ void C_pressed () {
           C_STATUS = true;
           if (NOW - Last_C < Butt_Interval) {
               C_COUNT += 1;
-              Serial.println("Button C pressed " + String(C_COUNT) + " times!");
+              telnet_println("Button C pressed " + String(C_COUNT) + " times!");
           }
           else {
               C_COUNT = 1;
-              Serial.println("Button C pressed");
+              telnet_println("Button C pressed");
           };
       }
       else {
           C_STATUS = false;
-          Serial.println("Button C released");
+          telnet_println("Button C released");
       };
   }
   Last_C = NOW;
@@ -99,14 +99,17 @@ void C_pressed () {
 void buttons_setup() {
   if (BUT_A>=0) {
         pinMode(BUT_A, INPUT_PULLUP);
+        A_STATUS = !bool(digitalRead(BUT_A));
         attachInterrupt(BUT_A, A_pressed, CHANGE);
   }
   if (BUT_B>=0) {
         pinMode(BUT_B, INPUT_PULLUP);
+        B_STATUS = !bool(digitalRead(BUT_B));
         attachInterrupt(BUT_B, B_pressed, CHANGE);
   }
   if (BUT_C>=0) {
         pinMode(BUT_C, INPUT_PULLUP);
+        C_STATUS = !bool(digitalRead(BUT_C));
         attachInterrupt(BUT_C, C_pressed, CHANGE);
   }
 }

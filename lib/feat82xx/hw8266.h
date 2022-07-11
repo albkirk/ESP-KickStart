@@ -153,7 +153,7 @@ void myconfigTime(const char* tz, const char* server1, const char* server2, cons
 }
 
 void esp_wifi_disconnect() {
-    WiFi.mode(WIFI_SHUTDOWN);
+    WiFi.mode(WIFI_OFF);
 }
 
 void wifi_hostname() {

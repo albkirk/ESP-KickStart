@@ -32,8 +32,8 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     String command = String(topic);
     command.replace(mqtt_pathsubs, "");
     String cmd_value = String((char*)msg);
-    telnet_print("Requested Command: " + command);
-    telnet_println("\tCommand Value: " + cmd_value);
+    telnet_print("Requested Command: " + command, true);
+    telnet_println(" Command Value: " + cmd_value, true);
 
     // System Configuration 
     if ( command == "DeviceName") {hassio_delete(); strcpy(config.DeviceName, cmd_value.c_str()); hassio_discovery(); hassio_attributes(); storage_write(); }
@@ -51,8 +51,8 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "WEB") { config.WEB = bool(cmd_value.toInt()); storage_write(); web_setup(); }
 #endif
     if ( command == "DHCP") { config.DHCP = bool(cmd_value.toInt()); storage_write(); wifi_connect(); }
-    if ( command == "STAMode") { config.STAMode = bool(cmd_value.toInt()); storage_write(); wifi_connect(); }
-    if ( command == "APMode") { config.APMode = bool(cmd_value.toInt()); storage_write(); wifi_connect(); }
+    if ( command == "STAMode") { config.STAMode = bool(cmd_value.toInt()); storage_write(); wifi_setup(); }
+    if ( command == "APMode") { config.APMode = bool(cmd_value.toInt()); storage_write(); wifi_setup(); }
     if ( command == "SSID") strcpy(config.SSID, cmd_value.c_str());
     if ( command == "WiFiKey") strcpy(config.WiFiKey, cmd_value.c_str());
     if ( command == "NTPServerName") strcpy(config.NTPServerName, cmd_value.c_str());
@@ -112,13 +112,13 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
 
     custom_mqtt(command, cmd_value);
 
-    if (config.DEBUG) {
-        storage_print();
-        if (BattPowered) { Serial.printf("Power: BATT  -  Level: %.0f\t", getBattLevel()); }
-        else { Serial.printf("Power: MAINS\t"); }
-        Serial.print("Current Date/Time: " + curDateTime());
-        Serial.printf("\t NTP Sync: %d\n", NTP_Sync);
-    }
+//    if (config.DEBUG) {
+//        storage_print();
+//        if (BattPowered) { Serial.printf("Power: BATT  -  Level: %.0f\t", getBattLevel()); }
+//        else { Serial.printf("Power: MAINS\t"); }
+//        Serial.print("Current Date/Time: " + curDateTime());
+//        Serial.printf("\t NTP Sync: %d\n", NTP_Sync);
+//    }
 }
 
 
@@ -169,7 +169,7 @@ void mqtt_loop() {
     if (!MQTTclient.loop()) {
         if ( millis() - MQTT_LastTime > (MQTT_Retry * 1000)) {
             MQTT_errors ++;
-            Serial.println( "in loop function MQTT ERROR! #: " + String(MQTT_errors) + "  ==> " + MQTT_state_string(MQTTclient.state()) );
+            telnet_println( "in loop function MQTT ERROR! #: " + String(MQTT_errors) + "  ==> " + MQTT_state_string(MQTTclient.state()) );
             MQTT_LastTime = millis();
             mqtt_connect();
             if( MQTT_state == MQTT_CONNECTED) state_update();
@@ -195,7 +195,7 @@ void parse_command_msg(String bufferRead) {
                 char * pch;
                 pch = strtok (msg_array," ,-=\"\t\r\n");
                 String command = String((char *)pch);
-                pch = strtok (NULL, " ,-=\"\t\r\n");
+                pch = strtok (NULL, " ,=\"\t\r\n");
                 String value = String((char *)pch);
                 //Serial.print(command); Serial.print("\t<-->\t"); Serial.println(value);
 
@@ -205,6 +205,7 @@ void parse_command_msg(String bufferRead) {
 
                 on_message(command.c_str(), B_value, value.length()+1);
             }
+            else telnet_println("",true);
         }
         TELNET_Timer = millis();                // Update timer to extend telnet inactivity timeout
 }
@@ -218,7 +219,7 @@ void telnet_loop() {
 	    //check if there are any new clients
         if (telnetClient.connected()) {
             if ((millis() - TELNET_Timer) > MAX_TIME_INACTIVE) {
-                telnetClient.println("Closing Telnet session by inactivity");
+                telnet_println("Closing Telnet session by inactivity", true);
                 telnetClient.stop();
             }
         }
@@ -248,8 +249,20 @@ void telnet_loop() {
             }
         }
 
-        if (telnetClient.available()) parse_command_msg(telnetClient.readStringUntil('\n'));
-
+        if (telnetClient.available()) {
+            parse_command_msg(telnetClient.readStringUntil(char(10)));
+            console_prompt();
+        }
         yield();
     }
+}
+
+
+// Serial loop function to parse anny command written on the serial interface
+void serial_loop() {
+        if (Serial.available()) {
+            parse_command_msg(Serial.readStringUntil(char(10)));
+            console_prompt();
+        }
+        yield();
 }

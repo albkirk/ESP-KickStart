@@ -21,11 +21,11 @@
 
 #include <mywifi.h>
 
-#ifdef ESP8266
-    #include <httpupd.h>
-#endif
+//#ifdef ESP8266
+//    #include <httpupd.h>
+//#endif
 
-#include <telnet.h>
+#include <console.h>
 #include <ntp.h>
 #include <mqtt.h>
 #ifndef ESP8285
@@ -44,9 +44,10 @@ void setup() {
   // Starting with WiFi interface shutdown in order to save energy
     wifi_disconnect();
 
-  // Start Serial interface
+  // Start SERIAL console
       //Serial.begin(74880);                  // This odd baud speed will shows ESP8266 boot diagnostics too.
       Serial.begin(115200);                 // For faster communication use 115200
+      //Serial.setTimeout(1000);
 
       Serial.println("");
       Serial.println("Hello World!");
@@ -66,10 +67,10 @@ void setup() {
       wifi_setup();
     
   // Check for HTTP Upgrade
-#ifdef ESP8266
-      http_upg();               // Note: this service kills all running UDP and TCP services
-#endif
-  // Start TELNET service
+//#ifdef ESP8266
+//      http_upg();               // Note: this service kills all running UDP and TCP services
+//#endif
+  // Start TELNET console service
       if (config.TELNET) telnet_setup();
 
   // Start NTP service
@@ -89,6 +90,9 @@ void setup() {
   // **** Project SETUP Sketch code here...
       project_setup();
 
+  // all setup tasks done; time to prompt
+      console_prompt();
+
   // Last bit of code before leave setup
       ONTime_Offset = millis() + 200UL;     //  200ms after finishing the SETUP function it starts the "ONTime" countdown.
                                             //  it should be good enough to receive the MQTT "ExtendONTime" msg
@@ -104,6 +108,9 @@ void loop() {
 
   // WiFi handling
       wifi_loop();
+
+  // Serial handling
+      serial_loop();
 
   // TELNET handling
       if (config.TELNET) telnet_loop();

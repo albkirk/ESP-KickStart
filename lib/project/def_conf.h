@@ -2,13 +2,13 @@
 //#define ESP32                                         // already defined elsewhere...
 //#define ESP8266                                       // already defined somewhere...
 //#define ESP8285                                         // ESP8285 chip requires reduced MEM space (ex.: remove WEB page)  
-#undef ESP8266                                          // To make sure it is not used somewhere... 
-//#undef ESP32                                            // To make sure it is not used somewhere... 
+//#undef ESP8266                                          // To make sure it is not used somewhere... 
+#undef ESP32                                            // To make sure it is not used somewhere... 
 
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"               // Hardware brand name
 #define MODELName           "GenBoxESP"                 // Hardware model name
-#define SWVer               "12.19"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "13.01"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- GPIO to Function Assignment --
 #define LED_ESP              2                          // 8266=2, ESP32=22, T-Call=13, -1 means NOT used!
@@ -28,6 +28,7 @@
 bool BattPowered =          true;                       // Is the device battery powered?
 #define Batt_L_Thrs         15                          // Battery level threshold [0%-100%] (before slepping forever).
 #define Using_ADC           true                        // will this device use the ADC? (if not, ES8266 will measure the internal voltage)
+//#define Default_ADC_PIN   34                          // IO pin to be used for the Battery ADC measurement. Default already is pin 36
 
 // -- SPI PIN Definition --
 #define MISO_PIN            -1                          // SPI MISO pin,TTGoTS->-1, -1 means NOT used!
@@ -98,8 +99,8 @@ void config_defaults() {
     strcpy(config.MQTT_Server, "iothubna.hopto.org");     // MQTT Broker Server (URL or IP)
     config.MQTT_Port = 1883;                              // MQTT Broker TCP port
     config.MQTT_Secure = false;                           // 0 - Unsecure, 1 - TLS v1.2 Secured!!
-    strcpy(config.MQTT_User, "admin");                    // MQTT Broker username
-    strcpy(config.MQTT_Password, "admin");                // MQTT Broker password
+    strcpy(config.MQTT_User, "mqtt");                     // MQTT Broker username
+    strcpy(config.MQTT_Password, "mqttpass!");             // MQTT Broker password
     strcpy(config.UPDATE_Server, "iothubna.hopto.org");   // UPDATE Server (URL or IP)
     config.UPDATE_Port = 8123;                            // UPDATE Server TCP port
     strcpy(config.UPDATE_User, "user");                   // UPDATE Server username
@@ -112,7 +113,7 @@ void config_defaults() {
     strcpy(config.WEB_Password, "admin");                 // WEB Server password
     config.Temp_Corr = 0.0;                               // Sensor Temperature Correction Factor, typically due to electronic self heat.
     config.LDO_Corr = 0.25;                               // Battery Voltage [volt] corrective Factor due to LDO/Diode voltage drop
-    config.HW_Module = true;                              // Is HW module plugged (ex.: GPS hardware)used / connected?
+    config.HW_Module = false;                             // Is HW module plugged (ex.: GPS hardware)used / connected?
     config.HASSIO_CFG = false;                            // Is HASSIO configured? If not, it should perform the discovery.
     config.DEBUG = true;                                  // 0 - No serial msgs, 1 - Debug msg sent to serial interface
     config.SW_Upgraded = false;                           // Is SW Upgrade completed? If not, clean the house and Update status.

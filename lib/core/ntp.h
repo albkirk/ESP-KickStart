@@ -173,8 +173,7 @@ String curDateTime() {
 void ntp_setup () {
     getNTPtime();
     if (NTP_Sync) {
-        
-        telnet_println("Current Local Date / Time: " + curDateTime());
+        telnet_println("Current Local Date / Time: " + curDateTime(), true);
    }
 }
 
@@ -183,7 +182,7 @@ void ntp_loop () {
   if (!NTP_Sync) {
       if ( millis() - NTP_LastTime > (NTP_Retry * 1000)) {
           NTP_errors ++;
-          if (config.DEBUG) Serial.println( "in loop function NTP NOT sync! #: " + String(NTP_errors));
+          telnet_println( "in loop function NTP NOT sync! #: " + String(NTP_errors));
           NTP_LastTime = millis();
           getNTPtime();
         }

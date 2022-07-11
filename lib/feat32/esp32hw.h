@@ -38,7 +38,9 @@ Preferences preferences;                    // Preferences library is wrapper ar
     ADC_MODE(ADC_VCC)                       // Get voltage from Internal ADC
 #endif
 */
-#define Default_ADC_PIN 36
+#ifndef Default_ADC_PIN
+    #define Default_ADC_PIN 36
+#endif
 
 // Initialize the Webserver
 WebServer MyWebServer(80);
@@ -285,7 +287,7 @@ float getBattLevel() {                                      // return Battery le
 #else
     float voltage = 0.0;                                    // Input Voltage [v]
     for(int i = 0; i < Number_of_measures; i++) {
-        voltage += ReadVoltage(36);
+        voltage += ReadVoltage(Default_ADC_PIN);
         delay(1);
     }
     voltage = voltage / Number_of_measures;
