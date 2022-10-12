@@ -70,14 +70,20 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "isDayLightSaving") config.isDayLightSaving = bool(cmd_value.toInt());
     if ( command == "DEBUG") { config.DEBUG = bool(cmd_value.toInt()); telnet_println("DEBUG = " + String(config.DEBUG)); storage_write(); }
     if ( command == "Store") if (bool(cmd_value.toInt()) == true) storage_write();
-    if ( command == "Boot")  if (bool(cmd_value.toInt()) == true) {mqtt_publish(mqtt_pathcomd, "Boot", "", true); mqtt_restart();}
-    if ( command == "Reset") if (bool(cmd_value.toInt()) == true) {mqtt_publish(mqtt_pathcomd, "Reset", "", true); hassio_delete(); mqtt_reset();}
+    if ( command == "Restart")  if (bool(cmd_value.toInt()) == true) {mqtt_publish(mqtt_pathcomd, "Restart", "", true); global_restart();}
+    if ( command == "Reset") if (bool(cmd_value.toInt()) == true) {mqtt_publish(mqtt_pathcomd, "Reset", "", true); hassio_delete(); global_reset();}
+    if ( command == "Format") if (bool(cmd_value.toInt()) == true) FormatConfig();
+    if ( command == "Version") {mqtt_publish(mqtt_pathtele, "Version", String(SWVer)); telnet_println("Version: " + String(SWVer));}
     if ( command == "HASSIO") if (bool(cmd_value.toInt()) == true) {
             mqtt_publish(mqtt_pathcomd, "HASSIO", "", true);
             hassio_delete();
             hassio_discovery();
             delay(10);
             state_update();
+        }
+    if ( command == "HASSIODEL") if (bool(cmd_value.toInt()) == true) {
+            mqtt_publish(mqtt_pathcomd, "HASSIO", "", true);
+            hassio_delete();
         }
     if ( command == "Switch_Def") { 
             config.SWITCH_Default = bool(cmd_value.toInt());

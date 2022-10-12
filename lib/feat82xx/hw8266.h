@@ -190,9 +190,9 @@ bool RTC_write() {
     rtcData.crc32 = calculateCRC32( ((uint8_t*)&rtcData) + 4, sizeof( rtcData ) - 4 );
     //rtcData.lastUTCTime = curUnixTime();
     if (config.DEBUG) {
-        Serial.print("Write crc: " + String(rtcData.crc32) + "\t");
-        Serial.print("Write BSSID: " + CharArray_to_StringHEX((const char*)rtcData.bssid, sizeof(rtcData.bssid)) + "\t");
-        Serial.print("Write LastWiFiChannel: " + String(rtcData.LastWiFiChannel) + "\t");
+        Serial.print("Write crc: " + String(rtcData.crc32) + "  -  ");
+        Serial.print("Write BSSID: " + CharArray_to_StringHEX((const char*)rtcData.bssid, sizeof(rtcData.bssid)) + "  -  ");
+        Serial.print("Write LastWiFiChannel: " + String(rtcData.LastWiFiChannel) + "  -  ");
         Serial.println("Write Last Date: " + String(rtcData.lastUTCTime));
     }
 

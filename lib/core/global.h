@@ -36,3 +36,21 @@ void status_report() {
     }
     else mqtt_publish(mqtt_pathtele, "Status", "Mains");
 }
+
+void global_restart() {
+    mqtt_restart();
+    if (config.TELNET) telnet_stop();
+    ESPRestart();
+}
+
+void global_reset() {
+    mqtt_reset();
+    if (config.TELNET) telnet_stop();
+    storage_reset();
+    RTC_reset();
+    ESPRestart();    
+}
+
+void global_setup() {
+    SLEEPTime = config.SLEEPTime;          // Variable to allow temporary change the sleeptime (ex.: = 0)
+}

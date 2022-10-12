@@ -135,16 +135,12 @@ void mqtt_disconnect() {
 void mqtt_restart() {
     mqtt_publish(mqtt_pathtele, "Status", "Restarting");
     mqtt_disconnect();
-    ESPRestart();
 }
 
 
 void mqtt_reset() {
     mqtt_publish(mqtt_pathtele, "Status", "Reseting");
     mqtt_disconnect();
-    storage_reset();
-    RTC_reset();
-    ESPRestart();
 }
 
 

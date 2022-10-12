@@ -8,7 +8,7 @@
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"               // Hardware brand name
 #define MODELName           "GenBoxESP"                 // Hardware model name
-#define SWVer               "13.02"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "13.04"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- GPIO to Function Assignment --
 #define LED_ESP              2                          // 8266=2, ESP32=22, T-Call=13, -1 means NOT used!
@@ -100,7 +100,7 @@ void config_defaults() {
     config.MQTT_Port = 1883;                              // MQTT Broker TCP port
     config.MQTT_Secure = false;                           // 0 - Unsecure, 1 - TLS v1.2 Secured!!
     strcpy(config.MQTT_User, "mqtt");                     // MQTT Broker username
-    strcpy(config.MQTT_Password, "mqttpass!");             // MQTT Broker password
+    strcpy(config.MQTT_Password, "mqttpass!");            // MQTT Broker password
     strcpy(config.UPDATE_Server, "iothubna.hopto.org");   // UPDATE Server (URL or IP)
     config.UPDATE_Port = 8123;                            // UPDATE Server TCP port
     strcpy(config.UPDATE_User, "user");                   // UPDATE Server username

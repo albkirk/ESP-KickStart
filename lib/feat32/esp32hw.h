@@ -1,4 +1,11 @@
-#include <wifi.h>
+#ifndef _WIFI_WRAPPER_H
+    #define _WIFI_WRAPPER_H 
+    /* inner content only filled with stuff if we're on esp32 or esp8266 platforms.. */
+    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+        #include <WiFi.h> 
+        /* other stuff */
+    #endif
+#endif
 //#include <BLEDevice.h>
 #include <rom/rtc.h>
 #include <Preferences.h>
@@ -155,8 +162,10 @@ void esp_wifi_disconnect() {
 }
 
 void wifi_hostname() {
-    String host_name = String(config.DeviceName + String("-") + config.Location);
-    WiFi.setHostname(host_name.c_str());
+    static char my_hostname[32] = {0,};
+    String host_name = String(config.DeviceName) + String("-") + String(config.Location);
+    snprintf(my_hostname, 32, "%s", host_name);
+    WiFi.setHostname(my_hostname);
 }
 
 uint8_t wifi_waitForConnectResult(unsigned long timeout) {
@@ -166,6 +175,7 @@ uint8_t wifi_waitForConnectResult(unsigned long timeout) {
 bool RTC_read()  {return false;}
 bool RTC_write() {return true;}
 bool RTC_reset() {return true;}
+void FormatConfig() {}
 
 
 /*

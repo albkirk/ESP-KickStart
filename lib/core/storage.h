@@ -140,29 +140,29 @@ struct __attribute__((__packed__)) strConfig {
 //  STORAGE functions
 //
 void storage_print() {
-    Serial.printf("Config Size: [%d bytes]\n", sizeof(config));
+    Serial.printf("Config Size: [%d bytes]\r\n", sizeof(config));
     if (sizeof(config) + 16 > Mem_Start_Pos) Serial.println ("WARNING: Memory zones overlapinng!!");
-    Serial.printf("Device Name: %s and Location: %s\n", config.DeviceName, config.Location);
-    Serial.printf("ON time[sec]: %d  -  SLEEP Time[min]: %d -  DEEPSLEEP enabled: %d\n", config.ONTime, config.SLEEPTime, config.DEEPSLEEP);
-    Serial.printf("LED enabled: %d   -  TELNET enabled: %d  -  OTA enabled: %d  -  WEB enabled: %d\n", config.LED, config.TELNET, config.OTA, config.WEB);
-    Serial.printf("WiFi AP Mode: %d  -  WiFi STA Mode: %d   -  WiFi SSID: %s  -  WiFi Key: %s\n", config.APMode, config.STAMode, config.SSID, config.WiFiKey);
+    Serial.printf("Device Name: %s and Location: %s\r\n", config.DeviceName, config.Location);
+    Serial.printf("ON time[sec]: %d  -  SLEEP Time[min]: %d -  DEEPSLEEP enabled: %d\r\n", config.ONTime, config.SLEEPTime, config.DEEPSLEEP);
+    Serial.printf("LED enabled: %d   -  TELNET enabled: %d  -  OTA enabled: %d  -  WEB enabled: %d\r\n", config.LED, config.TELNET, config.OTA, config.WEB);
+    Serial.printf("WiFi AP Mode: %d  -  WiFi STA Mode: %d   -  WiFi SSID: %s  -  WiFi Key: %s\r\n", config.APMode, config.STAMode, config.SSID, config.WiFiKey);
   
-    Serial.printf("DHCP enabled: %d\n", config.DHCP);
+    Serial.printf("DHCP enabled: %d\r\n", config.DHCP);
     if(!config.DHCP) {
       Serial.printf("IP: %d.%d.%d.%d\t", config.IP[0],config.IP[1],config.IP[2],config.IP[3]);
       Serial.printf("Mask: %d.%d.%d.%d\t", config.Netmask[0],config.Netmask[1],config.Netmask[2],config.Netmask[3]);
-      Serial.printf("Gateway: %d.%d.%d.%d\n", config.Gateway[0],config.Gateway[1],config.Gateway[2],config.Gateway[3]);
+      Serial.printf("Gateway: %d.%d.%d.%d\r\n", config.Gateway[0],config.Gateway[1],config.Gateway[2],config.Gateway[3]);
       Serial.printf("DNS IP: %d.%d.%d.%d\t", config.DNS_IP[0],config.DNS_IP[1],config.DNS_IP[2],config.DNS_IP[3]);
     }
-    Serial.printf("MODEM APN: %s  -  User: %s  -  Pass: %s  -  PIN: %s\n", config.APN, config.MODEM_User, config.MODEM_Password, config.SIMCardPIN);
+    Serial.printf("MODEM APN: %s  -  User: %s  -  Pass: %s  -  PIN: %s\r\n", config.APN, config.MODEM_User, config.MODEM_Password, config.SIMCardPIN);
     Serial.printf("MQTT Server: %s  -  Port: %ld  -  Secure: %d  -  ", config.MQTT_Server, config.MQTT_Port, config.MQTT_Secure);
-    Serial.printf("MQTT User: %s  -  MQTT Pass: %s\n", config.MQTT_User, config.MQTT_Password);
+    Serial.printf("MQTT User: %s  -  MQTT Pass: %s\r\n", config.MQTT_User, config.MQTT_Password);
     Serial.printf("NTP Server Name: %s\t", config.NTPServerName);
     Serial.printf("NTP update every %ld minutes.\t", config.Update_Time_Via_NTP_Every);
-    Serial.printf("Timezone: %ld  -  DayLight: %d\n", config.TimeZone, config.isDayLightSaving);
+    Serial.printf("Timezone: %ld  -  DayLight: %d\r\n", config.TimeZone, config.isDayLightSaving);
 
-    Serial.printf("Debug: %d  -  HW Module: %d  -  Remote Allowed: %d  -  WEB User: %s  -  WEB Pass: %s\n", config.DEBUG, config.HW_Module, config.Remote_Allow, config.WEB_User, config.WEB_Password);
-    Serial.printf("SWITCH default: %d  -  Temperature Correction: %.2f  -  Voltage Correction: %.2f\n", config.SWITCH_Default, config.Temp_Corr, config.LDO_Corr);
+    Serial.printf("Debug: %d  -  HW Module: %d  -  Remote Allowed: %d  -  WEB User: %s  -  WEB Pass: %s\r\n", config.DEBUG, config.HW_Module, config.Remote_Allow, config.WEB_User, config.WEB_Password);
+    Serial.printf("SWITCH default: %d  -  Temperature Correction: %.2f  -  Voltage Correction: %.2f\r\n", config.SWITCH_Default, config.Temp_Corr, config.LDO_Corr);
 }
 
 boolean storage_read() {

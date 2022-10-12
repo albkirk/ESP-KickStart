@@ -5,12 +5,11 @@ void custom_mqtt(String command, String cmd_value) {
     if (BattPowered) mqtt_publish(mqtt_pathtele, "Battery", String(getBattLevel(),0));
     mqtt_publish(mqtt_pathtele, "DateTime", String(curDateTime()));
     mqtt_publish(mqtt_pathtele, "NTP_Sync", String(NTP_Sync));
-    if (BattPowered) { Serial.printf("Power: BATT  -  Level: %.0f\t", getBattLevel()); }
-    else { telnet_print("Power: MAINS\t", true); }
-    telnet_print("Current Date/Time: " + curDateTime(), true);
-    Serial.printf("\t NTP Sync: %d\n", NTP_Sync);
-    hassio_attributes();
-    //ambient_data();
+    if (BattPowered) { telnet_print("Power: BATT", true); Serial.printf("  -  Level: %.0f", getBattLevel()); }
+    else { telnet_print("Power: MAINS", true); }
+    telnet_print("  -  Uptime: " + String(millis()/1000), true);
+    telnet_print("  -  Current Date/Time: " + curDateTime(), true);
+    telnet_println("  -  NTP Sync: " + String(NTP_Sync), true);
     #ifdef ESP8266
         telnet_println("Flash: " + Flash_Size() + "  -  CPU Clock: " + String(CPU_Clock()) + " MHz  -  WiFi State: " + WIFI_state_Name[WIFI_state] + " - Phy Mode: " + WIFI_PHY_Mode_Name[WiFi.getPhyMode()] + "  -  MQTT State: " + MQTT_state_string(), true);
     #else
@@ -19,6 +18,8 @@ void custom_mqtt(String command, String cmd_value) {
     #ifdef Modem_WEB_TELNET
         telnet_println("Modem State: " + Modem_state_Name[Modem_state] + "\t REG State: " + RegStatus_string(modem.getRegistrationStatus()));
     #endif
+    hassio_attributes();
+    //ambient_data();
   }
   if ( command == "Config" && bool(cmd_value.toInt()) ) {
     mqtt_publish(mqtt_pathtele, "OTA", String(config.OTA));

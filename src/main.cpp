@@ -28,9 +28,7 @@
 #include <console.h>
 #include <ntp.h>
 #include <mqtt.h>
-#ifndef ESP8285
-    #include <ota.h>
-#endif
+#include <ota.h>
 #include <project.h>
 #include <global.h>
 #include <hassio.h>
@@ -65,7 +63,7 @@ void setup() {
 
   // Start WiFi service (Station or/and as Access Point)
       wifi_setup();
-    
+
   // Check for HTTP Upgrade
 //#ifdef ESP8266
 //      http_upg();               // Note: this service kills all running UDP and TCP services
@@ -79,16 +77,19 @@ void setup() {
  // Start MQTT service
       mqtt_setup();
 
-#ifndef ESP8285
   // Start OTA service
       if (config.OTA) ota_setup();
 
+#ifndef ESP8285
   // Start ESP Web Service
       if (config.WEB) web_setup();
 #endif
 
   // **** Project SETUP Sketch code here...
       project_setup();
+
+  // Global setup
+      global_setup();
 
   // all setup tasks done; time to prompt
       console_prompt();
@@ -121,10 +122,10 @@ void loop() {
   // MQTT handling
       mqtt_loop();
 
-#ifndef ESP8285
   // OTA request handling
       if (config.OTA) ota_loop();
 
+#ifndef ESP8285
   // ESP Web Server requests handling
       if (config.WEB) web_loop();
 #endif
