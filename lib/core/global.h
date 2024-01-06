@@ -29,22 +29,26 @@ float Batt_OK_check() {                     // If LOW Batt, it will DeepSleep fo
 
 void status_report() {
     if (BattPowered) {
-         float Battery = Batt_OK_check();
-         mqtt_publish(mqtt_pathtele, "Status", "Battery");
-         if (Battery >=0) mqtt_publish(mqtt_pathtele, "Battery", String(Battery,0));
-
+        float Battery = Batt_OK_check();
+        if (Battery >100) mqtt_publish(mqtt_pathtele, "Status", "Charging");
+        else {
+            mqtt_publish(mqtt_pathtele, "Status", "Battery");
+            if (Battery >=0) mqtt_publish(mqtt_pathtele, "Battery", String(Battery,0));
+        }
     }
     else mqtt_publish(mqtt_pathtele, "Status", "Mains");
 }
 
-void global_restart() {
-    mqtt_restart();
+void global_restart(String message = "Restarting") {
+    mqtt_publish(mqtt_pathtele, "Status", message);
+    mqtt_disconnect();
     if (config.TELNET) telnet_stop();
     ESPRestart();
 }
 
 void global_reset() {
-    mqtt_reset();
+    mqtt_publish(mqtt_pathtele, "Status", "Reseting");
+    mqtt_disconnect();
     if (config.TELNET) telnet_stop();
     storage_reset();
     RTC_reset();

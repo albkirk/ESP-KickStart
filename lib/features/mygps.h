@@ -1,4 +1,4 @@
-#include <TinyGPS++.h>
+#include <TinyGPSPlus.h>
 
 
 #define Cold_Start 30000                            // Typically ~27500 msec fix time from Cold start
@@ -26,7 +26,7 @@ TinyGPSPlus gps;
     #define ss serialGPS                            // The serial connection to the GPS device
 
 #else
-    #error “Unsupported board selected!”
+    #error Unsupported board selected!
 #endif
 
 
@@ -128,7 +128,7 @@ void gps_setup() {
     #elif ESP32
         ss.begin(GPSBaud, SERIAL_8N1 , GPS_RX, GPS_TX);         // Use SWSERIAL_8N1 with SWserial. Use SERIAL_8N1 with  HWserial.
     #else
-        #error “Unsupported board selected!”
+        #error Unsupported board selected!
     #endif
 
  /*  

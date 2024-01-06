@@ -1,24 +1,27 @@
 // -- PLATFORM Selection --
-//#define ESP32                                         // already defined elsewhere...
-//#define ESP8266                                       // already defined somewhere...
-//#define ESP8285                                         // ESP8285 chip requires reduced MEM space (ex.: remove WEB page)  
+//DO NOT USE  #define ESP32                             // already defined elsewhere...
+//DO NOT USE  #define ESP8266                           // already defined somewhere...
+//#define ESP8285                                       // ESP8285 chip requires reduced MEM space (ex.: remove WEB page)  
 //#undef ESP8266                                          // To make sure it is not used somewhere... 
 #undef ESP32                                            // To make sure it is not used somewhere... 
 
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"               // Hardware brand name
 #define MODELName           "GenBoxESP"                 // Hardware model name
-#define SWVer               "13.04"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "13.06"                     // Major.Minor Software version (use String 01.00 - 99.99 format !)
+
+// -- Model Variants Definition --                      // Identify variants for acomodade small code changes 
+//#define ModelVariant                                    // Ex.: MoesHouse cover, Ambisense version,... 
 
 // -- GPIO to Function Assignment --
-#define LED_ESP              2                          // 8266=2, ESP32=22, T-Call=13, -1 means NOT used!
+#define LED_ESP             22                          // 8266=2, ESP32=22, T-Call=13, TTGoTS=22, T5=19, -1 means NOT used!
 #define BUZZER              -1                          // (Active) Buzzer pin. Suggest to use pin 0. -1 means NOT used!
 #define Ext1WakeUP          -1                          // External Wake Up pin. (connected to GND, with Parallel Cap).  -1 means NOT used!
 #define Def_Config          -1                          // Return to Default configuration. -1 means NOT used! 
-#define BUT_A               -1                          // Button A INPUT pin (used in buttons.h)
-#define BUT_B               -1                          // Button B INPUT pin (used in buttons.h)
-#define BUT_C               -1                          // Button C INPUT pin (used in buttons.h)
-#define T_Left              -1                          // Touch button Left  pin. -1 means NOT used! 
+#define BUT_A               -1                          // Button A INPUT pin (used in buttons.h) TTGoTS=35, T5=39, TTGo T7=0
+#define BUT_B               -1                          // Button B INPUT pin (used in buttons.h) TTGoTS=34,
+#define BUT_C               -1                          // Button C INPUT pin (used in buttons.h) TTGoTS=39,
+#define T_Left              -1                          // Touch button Left  pin. TTGoTS=T7, T5=-1, -1 means NOT used!
 #define T_Right             -1                          // Touch button Right pin. -1 means NOT used! 
 
 //TouchPins[] = { T0, T1, T2, T3, T4, T5, T6, T7, T8, T9 };  // ALL TOUCH values available!
@@ -28,13 +31,13 @@
 bool BattPowered =          true;                       // Is the device battery powered?
 #define Batt_L_Thrs         15                          // Battery level threshold [0%-100%] (before slepping forever).
 #define Using_ADC           true                        // will this device use the ADC? (if not, ES8266 will measure the internal voltage)
-//#define Default_ADC_PIN   34                          // IO pin to be used for the Battery ADC measurement. Default already is pin 36
+//#define Default_ADC_PIN     34                          // IO pin for Battery ADC measurement. Default->36,  TFT->36, EPaper->35
 
 // -- SPI PIN Definition --
-#define MISO_PIN            -1                          // SPI MISO pin,TTGoTS->-1, -1 means NOT used!
-#define MOSI_PIN            -1                          // SPI MOSI pin,TTGoTS->23, -1 means NOT used!
-#define CLK_PIN             -1                          // SPI CLK pin, TTGoTS-> 5, -1 means NOT used!
-#define CS_PIN              -1                          // SPI CS pin,  TTGoTS->16, -1 means NOT used!
+#define MISO_PIN            -1                          // SPI MISO pin, Display TTGoTS->-1, T5->-1, -1 means NOT used!
+#define MOSI_PIN            -1                          // SPI MOSI pin, Display TTGoTS->23, T5->23, -1 means NOT used!
+#define CLK_PIN             -1                          // SPI CLK pin, Display TTGoTS-> 5, T5->18, -1 means NOT used!
+#define CS_PIN              -1                          // SPI CS pin, Display  TTGoTS->16, t5->5 -1 means NOT used!
 
 // -- I2C PIN Definition --
 #define SDAPIN              -1                          // 8266=4, ESP32=21, -1 means NO SDA used!
@@ -47,8 +50,8 @@ bool BattPowered =          true;                       // Is the device battery
 // -- MODEM Definition --
 // Module selection
 //#define TINY_GSM_MODEM_SIM7020                        // SIMCOM 7020 module. 
-#define TINY_GSM_MODEM_SIM800                           // SIMCOM 800 module. TTGo T-Call module uses this chip
-//#define IP5306                                          // Power Management chip. TTGo T-Call module uses this.
+//#define TINY_GSM_MODEM_SIM800                         // SIMCOM 800 module. TTGo T-Call module uses this chip
+//#define IP5306                                        // Power Management chip. TTGo T-Call module uses this.
 // Modem PINs
 #define MODEM_PWKEY         -1                          // T-Call=4, SIM7020E=14, -1 means NOT used!
 #define MODEM_RST           -1                          // T-Call=5, -1 means NOT used!
@@ -62,17 +65,16 @@ bool BattPowered =          true;                       // Is the device battery
 // -- DISPLAY Definition --
 //#define TFT                                           // TFT Display based on Driver ST7735 used on TTGo TS
 //#define EPAPER                                        // E-Paper Display model GDEH0213B73 used on TTGo T5 v2.3
-
-#define BACKLIGHT           -1                          // Display backlight pin,TTGoTS->-1, -1 means NOT used!
-#define RST_PIN             -1                          // Display RST pin,      TTGoTS-> 9, -1 means NOT used!
-#define DC_PIN              -1                          // Display DC pin,       TTGoTS->17, -1 means NOT used!
-#define BUSY_PIN            -1                          // Display BUSY pin,     TTGoTS->-1, -1 means NOT used!
+#define BACKLIGHT           -1                          // Display backlight, TTGoTS->-1, T5->-1, -1 means NOT used!
+#define RST_PIN             -1                          // Display RST pin,   TTGoTS-> 9, T5->16, -1 means NOT used!
+#define DC_PIN              -1                          // Display DC pin,    TTGoTS->17, T5->17, -1 means NOT used!
+#define BUSY_PIN            -1                          // Display BUSY pin,  TTGoTS->-1, T5->4   -1 means NOT used!
 
 
 void config_defaults() {
     Serial.println("Setting config Default values");
 
-    strcpy(config.DeviceName, "ESP_Generic");             // Device Name
+    strcpy(config.DeviceName, "AmbiSenseV2");             // Device Name
     strcpy(config.Location, "MainRoom");                  // Device Location
     strcpy(config.ClientID, "001001");                    // Client ID (used on MQTT)
     config.ONTime = 10;                                   // 0-255 seconds (Byte range)
@@ -112,7 +114,7 @@ void config_defaults() {
     strcpy(config.WEB_User, "admin");                     // WEB Server username
     strcpy(config.WEB_Password, "admin");                 // WEB Server password
     config.Temp_Corr = 0.0;                               // Sensor Temperature Correction Factor, typically due to electronic self heat.
-    config.LDO_Corr = 0.25;                               // Battery Voltage [volt] corrective Factor due to LDO/Diode voltage drop
+    config.LDO_Corr = 0.00;                               // Battery Voltage [volt] corrective Factor due to LDO/Diode voltage drop
     config.HW_Module = false;                             // Is HW module plugged (ex.: GPS hardware)used / connected?
     config.HASSIO_CFG = false;                            // Is HASSIO configured? If not, it should perform the discovery.
     config.DEBUG = true;                                  // 0 - No serial msgs, 1 - Debug msg sent to serial interface

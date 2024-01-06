@@ -31,7 +31,7 @@ static const String WIFI_PHY_Mode_Name[] = {
 };
 int WIFI_state = WL_DISCONNECTED;
 int Last_WIFI_state = WL_NO_SHIELD;
-unsigned int WIFI_Retry = 180;                  // Timer to retry the WiFi connection
+unsigned int WIFI_Retry = 35;                  // Timer to retry the WiFi connection
 unsigned long WIFI_LastTime = 0;                // Last WiFi connection attempt time stamp
 int WIFI_errors = 0;                            // WiFi errors Counter
 
@@ -96,6 +96,7 @@ void wifi_connect() {
                 }
                 if ( WIFI_state == WL_CONNECTED ) {
                     if (config.DEBUG) { Serial.print("Connected to WiFi network! " + String(config.SSID) + " IP: "); Serial.println(WiFi.localIP());}
+                    // state_update();      // relying on MQTT_connect() to execute this functions.
 
                     //if (!MDNS.begin(host_name)) {             // Start the mDNS responder for "host_name.local" domain
                     //    Serial.println("Error setting up MDNS responder!");

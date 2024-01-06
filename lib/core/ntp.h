@@ -144,12 +144,14 @@ void getNTPtime(unsigned long timeout_sync = 1000UL)
     {
       UTCTimeStamp = NTPTime;
       ntpNOW = millis();                     // To make sure that it 1st value is valid
+      telnet_println("NTP extracted from Internet.");
     }
   }
   if (ESPWakeUpReason() == "Deep-Sleep Wake" && loop_timeOut)
   {
     UTCTimeStamp = rtcData.lastUTCTime + config.SLEEPTime * 60 + 1; // + 1 is an empirical number to adjust the time error.
     RefMillis = 0;
+    telnet_println("NTP calculated from RTC");
   }
   if (UTCTimeStamp > 31536000UL)
   {

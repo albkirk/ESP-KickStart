@@ -1,6 +1,8 @@
 #include "esp32/ulp.h"
 #include "driver/rtc_io.h"
 
+#define LED_ULP 22                  // LED used during ULP mode (typically the onboard LED)
+
 
 static const int RTC_GPIO_channels[] = { 
         RTCIO_GPIO0_CHANNEL ,        //RTCIO_CHANNEL_11
@@ -114,8 +116,8 @@ void ulp_blink(uint32_t us, bool blink_enabled) {
 
 
   // RTC PIN assignment
-    const gpio_num_t rtc_pin = (gpio_num_t)LED_ESP;          // Ex.: GPIO_NUM_12
-    const int rtc_pin_bit = RTC_GPIO_channels[LED_ESP] + 14;
+    const gpio_num_t rtc_pin = (gpio_num_t)LED_ULP;          // Ex.: GPIO_NUM_12
+    const int rtc_pin_bit = RTC_GPIO_channels[LED_ULP] + 14;
   
 
   // GPIO initialization (set to output and initial value is 0)

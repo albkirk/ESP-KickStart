@@ -1,13 +1,7 @@
+// WRITE HERE all the Project's logic / Flow.
 // **** Project code definition here ...
 
-
-void project_hw() {
- // Output GPIOs
-
-
- // Input GPIOs
-
-}
+// **** Project code functions here ...
 
 
 void project_setup() {

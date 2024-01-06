@@ -32,9 +32,10 @@
           Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
         });
         ArduinoOTA.onEnd([]() {
+            //hassio_delete();    // Uncomment this line to force the HASSIO discovery after the upgrade 
             flash_LED(15);      // Flash board led 15 times at end
             telnet_println("\nOTA END with success!");
-            mqtt_restart();
+            global_restart("Upgraded");
         });
         ArduinoOTA.onError([](ota_error_t error) {
             Serial.printf("Error[%u]: ", error);

@@ -59,7 +59,7 @@ WiFiClient unsecuclient;                    // Use this for unsecure connection
 
 
 // Battery & ESP Voltage
-#define Batt_Max float(4.1)                 // Battery Highest voltage.  [v]
+#define Batt_Max float(4.2)                 // Battery Highest voltage.  [v]
 #define Batt_Min float(2.8)                 // Battery lowest voltage.   [v]
 #define Vcc float(3.3)                      // Theoretical/Typical ESP voltage. [v]
 #define VADC_MAX float(3.3)                 // Maximum ADC Voltage input
@@ -303,10 +303,12 @@ float getBattLevel() {                                      // return Battery le
     voltage = voltage / Number_of_measures;
     voltage = (voltage * 2) + config.LDO_Corr;              // "* 2" multiplier required when using a 50K + 50K Resistor divider between VCC and ADC. 
     if (config.DEBUG) Serial.println("Averaged and Corrected Voltage: " + String(voltage));
+    /*
     if (voltage > Batt_Max ) {
         if (config.DEBUG) Serial.println("Voltage will be truncated to Batt_Max: " + String(Batt_Max));
         voltage = Batt_Max;
     }
+    */
     return ((voltage - Batt_Min) / (Batt_Max - Batt_Min)) * 100.0;
 #endif
 }
@@ -443,9 +445,9 @@ void hw_setup() {
     }
 
   // ADC setup
-    analogSetPinAttenuation(36,ADC_11db);   // ADC_11db provides an attenuation so that IN/OUT = 1 / 3.6.
-                                            // An input of 3 volts is reduced to 0.833 volts before ADC measurement
-    adcAttachPin(36);                       // S_VP  -- GPIO36, ADC_PRE_AMP, ADC1_CH0, RTC_GPIO0
+    analogSetPinAttenuation(Default_ADC_PIN,ADC_11db);   // ADC_11db provides an attenuation so that IN/OUT = 1 / 3.6.
+                                                         // An input of 3 volts is reduced to 0.833 volts before ADC measurement
+    adcAttachPin(Default_ADC_PIN);                       // S_VP  -- GPIO36, ADC_PRE_AMP, ADC1_CH0, RTC_GPIO0
 
   // Disable BT (most of project won't use it) to save battery.
   //  esp_bt_controller_disable();

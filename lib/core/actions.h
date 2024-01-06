@@ -7,12 +7,12 @@ void state_update() {
             //mqtt_publish(mqtt_pathtele, "Model", MODELName);
             //mqtt_publish(mqtt_pathtele, "ChipID", ChipID);
             //mqtt_publish(mqtt_pathtele, "SWVer", SWVer);
-            status_report();                            // should send Status MAIN or Battery
             //mqtt_publish(mqtt_pathtele, "IP", WiFi.localIP().toString());
+            status_report();                            // should send Status MAIN or Battery
             if (LED_ESP>=0) mqtt_publish(mqtt_pathtele, "LED", String(config.LED));
             mqtt_publish(mqtt_pathtele, "RSSI", String(getRSSI()));
-            hassio_attributes();
             custom_update();
+            hassio_attributes();
 }
 
 
@@ -36,16 +36,16 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     telnet_println(" Command Value: " + cmd_value, true);
 
     // System Configuration 
-    if ( command == "DeviceName") {hassio_delete(); strcpy(config.DeviceName, cmd_value.c_str()); hassio_discovery(); hassio_attributes(); storage_write(); }
-    if ( command == "Location") {strcpy(config.Location, cmd_value.c_str()); config_backup(); hassio_attributes(); storage_write(); }
-    if ( command == "ClientID") {hassio_delete(); strcpy(config.ClientID, cmd_value.c_str()); hassio_discovery(); hassio_attributes(); storage_write(); }
+    if ( command == "DeviceName") {hassio_delete(); strcpy(config.DeviceName, cmd_value.c_str()); hassio_discovery(); state_update(); config_backup(); }
+    if ( command == "Location" && cmd_value !="") {hassio_delete(); strcpy(config.Location, cmd_value.c_str()); hassio_discovery(); state_update(); config_backup(); mqtt_publish(mqtt_pathcomd, "Location", "", true); }
+    if ( command == "ClientID") {hassio_delete(); strcpy(config.ClientID, cmd_value.c_str()); config_backup(); global_restart(); }
     if ( command == "DEEPSLEEP" && cmd_value !="") { config.DEEPSLEEP = bool(cmd_value.toInt()); storage_write(); mqtt_publish(mqtt_pathcomd, "DEEPSLEEP", "", true);}
     if ( command == "SLEEPTime" && cmd_value !="" && cmd_value.toInt() >= 0) { config.SLEEPTime = byte(cmd_value.toInt()); SLEEPTime = config.SLEEPTime; storage_write(); mqtt_publish(mqtt_pathcomd, "SLEEPTime", "", true); }
     if ( command == "ONTime") { config.ONTime = byte(cmd_value.toInt());storage_write(); }
     if ( command == "ExtendONTime") if (bool(cmd_value.toInt()) == true) Extend_time = 60;
     if ( command == "LED") {config.LED = bool(cmd_value.toInt()); mqtt_publish(mqtt_pathtele, "LED", String(config.LED));}
-    if ( command == "TELNET") { config.TELNET = bool(cmd_value.toInt()); storage_write(); telnet_setup(); }
-    if ( command == "OTA") { config.OTA = bool(cmd_value.toInt()); storage_write(); ESPRestart(); }
+    if ( command == "TELNET" && cmd_value !="") { config.TELNET = bool(cmd_value.toInt()); storage_write(); mqtt_publish(mqtt_pathcomd, "TELNET", "", true); telnet_setup(); }
+    if ( command == "OTA" && cmd_value !="") { config.OTA = bool(cmd_value.toInt()); storage_write(); mqtt_publish(mqtt_pathcomd, "OTA", "", true); global_restart(); }
     if ( command == "NTP") if (bool(cmd_value.toInt()) == true) { getNTPtime(); mqtt_publish(mqtt_pathtele, "DateTime", String(curDateTime()));}
 #ifndef ESP8285
     if ( command == "WEB") { config.WEB = bool(cmd_value.toInt()); storage_write(); web_setup(); }
@@ -82,7 +82,7 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
             state_update();
         }
     if ( command == "HASSIODEL") if (bool(cmd_value.toInt()) == true) {
-            mqtt_publish(mqtt_pathcomd, "HASSIO", "", true);
+            mqtt_publish(mqtt_pathcomd, "HASSIODEL", "", true);
             hassio_delete();
         }
     if ( command == "Switch_Def") { 
@@ -116,6 +116,45 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "Counter") COUNTER = (ulong)abs(atol(cmd_value.c_str()));
     if ( command == "Calibrate") { CALIBRATE = cmd_value.toFloat(); }
 
+    // System Information and configuration
+    if ( command == "Info" && bool(cmd_value.toInt()) ) {
+        //mqtt_publish(mqtt_pathtele, "DateTime", String(curDateTime()));
+        //mqtt_publish(mqtt_pathtele, "NTP_Sync", String(NTP_Sync));
+        if (BattPowered) { telnet_print("Power: BATT", true); telnet_print("  -  Level: " + String(getBattLevel(),0), true); }
+        else { telnet_print("Power: MAINS", true); }
+        //telnet_print("  -  SW Ver: " + String(SWVer), true);
+        //if (WIFI_state == WL_CONNECTED) telnet_print("  -  IP: " + WiFi.localIP().toString(), true);
+        telnet_print("  -  Uptime: " + String(millis()/1000), true);
+        telnet_print("  -  Current Date/Time: " + curDateTime(), true);
+        telnet_println("  -  NTP Sync: " + String(NTP_Sync), true);
+        #ifdef ESP8266
+            telnet_println("Flash: " + Flash_Size() + "  -  CPU Clock: " + String(CPU_Clock()) + " MHz  -  WiFi State: " + WIFI_state_Name[WIFI_state] + " - Phy Mode: " + WIFI_PHY_Mode_Name[WiFi.getPhyMode()] + "  -  MQTT State: " + MQTT_state_string(), true);
+        #else
+            telnet_println("Flash: " + Flash_Size() + "  -  CPU Clock: " + String(CPU_Clock()) + " MHz  -  WiFi State: " + WIFI_state_Name[WIFI_state] + "  -  MQTT State: " + MQTT_state_string(), true);
+        #endif
+        #ifdef Modem_WEB_TELNET
+            telnet_println("Modem State: " + Modem_state_Name[Modem_state] + "\t REG State: " + RegStatus_string(modem.getRegistrationStatus()));
+        #endif
+        state_update();
+    }
+    if ( command == "Config" && bool(cmd_value.toInt()) ) {
+        mqtt_publish(mqtt_pathtele, "OTA", String(config.OTA));
+        mqtt_publish(mqtt_pathtele, "TELNET", String(config.TELNET));
+        mqtt_publish(mqtt_pathtele, "WEB", String(config.WEB));
+        mqtt_publish(mqtt_pathtele, "Interval", String(config.SLEEPTime));   
+        mqtt_publish(mqtt_pathtele, "Temp_Corr", String(config.Temp_Corr));
+        mqtt_publish(mqtt_pathtele, "LDO_Corr", String(config.LDO_Corr));
+        config_backup();
+        storage_print();
+    }  
+    if ( command == "CPU_Boost" ) { CPU_Boost(bool(cmd_value.toInt())); delay(10); telnet_println("CPU Clock: " + String(CPU_Clock()) + " MHz"); }
+    if ( command == "CPU_Clock" && bool(cmd_value.toInt()) ) telnet_println("CPU Clock: " + String(CPU_Clock()) + " MHz");
+    #ifdef ESP8266
+        if ( command == "PHY_Mode" ) {WiFi.setPhyMode((WiFiPhyMode_t)cmd_value.toInt()); wifi_connect(); }
+            // WIFI_PHY_MODE_11B = 1, WIFI_PHY_MODE_11G = 2, WIFI_PHY_MODE_11N = 3
+    #endif
+    if ( command == "BattPowered" ) BattPowered = bool(cmd_value.toInt());
+
     custom_mqtt(command, cmd_value);
 
 //    if (config.DEBUG) {
@@ -133,15 +172,18 @@ void mqtt_setcallback() {
     MQTTclient.setCallback(on_message);
 }
 
+void mqtt_init_path() {
+    mqtt_pathtele = String(config.ClientID) + "/" + String(ChipID) + "/" + String(MODELName) + "/inform/";
+    mqtt_pathcomd = String(config.ClientID) + "/" + String(ChipID) + "/" + String(MODELName) + "/command/";
+    mqtt_pathconf = String(config.ClientID) + "/" + String(ChipID) + "/" + String(MODELName) + "/config/";
+    mqtt_pathsubs = mqtt_pathcomd;
+}
 
 // MQTT commands to run on setup function.
 void mqtt_setup() {
     float Batt_Level; 
-    mqtt_pathtele = String(config.ClientID) + "/" + String(ChipID) + "/" + String(config.DeviceName) + "/inform/";
-    mqtt_pathcomd = String(config.ClientID) + "/" + String(ChipID) + "/" + String(config.DeviceName) + "/command/";
-    mqtt_pathconf = String(config.ClientID) + "/" + String(ChipID) + "/" + String(config.DeviceName) + "/config/";
-    mqtt_pathsubs = mqtt_pathcomd;
 
+    mqtt_init_path();
     mqtt_set_client();
     mqtt_connect();
     mqtt_setcallback();
@@ -149,22 +191,25 @@ void mqtt_setup() {
         if (ESPWakeUpReason() == "Deep-Sleep Wake") {
             mqtt_publish(mqtt_pathtele, "Status", "WakeUp");
             Batt_Level = getBattLevel();
-            if (Batt_Level >= 0) mqtt_publish(mqtt_pathtele, "Battery", String(getBattLevel(),0));
+            if (Batt_Level >= 0) mqtt_publish(mqtt_pathtele, "Battery", String(Batt_Level,0));
         }
         else {
             // 1st RUN ?
-            //if(Load_Default) yield();                 // NOTE! this var drops after boot/sleep, regardless of Wifi/MQTT connection success.
+            //if(!Load_Config) yield();                 // NOTE! this var drops after boot/sleep, regardless of Wifi/MQTT connection success.
+            /* 
             if(config.SW_Upgraded) {
                 config.HASSIO_CFG = false;              // this forces HASSIO Discovery device info to be updated
                 config.SW_Upgraded = false;             // The house is cleaned... clearing the flag.
                 storage_write();
             }
+            */
             // HASSIO Discovery configured?
             if(!config.HASSIO_CFG) {
-                if (bckup_rstr_flag) mqtt_restore();
+                mqtt_restore();                         // restore data from BckpRstr topic before announcing to HA
                 hassio_discovery();
+                if (!bckp_rstr_flag) config_backup();   // If true means we need to generate and upload the config backup
             }
-            trigger_syncme();
+            else trigger_syncme();
             state_update();
         }
     }
@@ -184,6 +229,25 @@ void mqtt_loop() {
     yield();
 }
 
+// SERIAL and TELNET Parsing functions
+void parse_at_command(String msg) {
+    #ifdef Modem_WEB_TELNET
+        msg.remove(0, 2);       // to remove "AT"
+        modem.sendAT(msg);
+        String res = "";
+        unsigned long timeout = millis();
+        while ( (millis() - timeout < 1000) && modem.stream.available() < 0 ) yield();
+        timeout = millis();
+        while ((millis() - timeout < 1000)) {
+            if (modem.stream.available() > 0) {
+                res = modem.stream.readStringUntil('\n');
+                telnet_println(res);
+                timeout = millis();
+            }
+        }
+    #endif
+    yield();
+}
 
 void parse_command_msg(String bufferRead) {
         char msg_array[bufferRead.length()+1];
@@ -233,7 +297,7 @@ void telnet_loop() {
         if (telnetServer.hasClient()) {
             if (telnetClient && telnetClient.connected()) {
                 // Verify if the IP is same than actual conection
-                newClient = telnetServer.available();
+                newClient = telnetServer.accept();
                 if (newClient.remoteIP() == telnetClient.remoteIP() ) {
                     // Reconnect
                     telnetClient.stop();
@@ -247,7 +311,7 @@ void telnet_loop() {
             }
             else {
                 // New TCP client
-                telnetClient = telnetServer.available();
+                telnetClient = telnetServer.accept();
                 telnetClient.setNoDelay(true);      // Faster... ?
                 telnetClient.flush();               // clear input buffer, else you get strange characters
                 TELNET_Timer = millis();            // initiate timer for inactivity

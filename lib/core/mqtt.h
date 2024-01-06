@@ -42,8 +42,8 @@ static String mqtt_pathconf = "";                   // Topic path for Backup/Res
 static String mqtt_pathsubs = "";                   // Topic path for subscription
 
 // Backup/Restore
-bool bckup_rstr_flag = true;                        // Enable this flag if there's data to backup restore
-unsigned long rstr_syn_timeout= 200UL;              // time out limit to wait for the restore/syncMe MQTT packets 
+bool bckp_rstr_flag = false;                        // Enable this flag if there's data to backup restore
+unsigned long rstr_syn_timeout= 1000UL;             // time out limit to wait for the restore/syncMe MQTT packets 
 DynamicJsonDocument config_doc(256);                // JSON entity for configuration Backup/Restore (via MQTT)
 char config_jsonString[256];                        // Correspondent string variable
 
@@ -132,18 +132,6 @@ void mqtt_disconnect() {
 }
 
 
-void mqtt_restart() {
-    mqtt_publish(mqtt_pathtele, "Status", "Restarting");
-    mqtt_disconnect();
-}
-
-
-void mqtt_reset() {
-    mqtt_publish(mqtt_pathtele, "Status", "Reseting");
-    mqtt_disconnect();
-}
-
-
 void mqtt_wait_loop(unsigned long wait_timeout = rstr_syn_timeout) {
     unsigned long start_time = millis();
     while (millis() - start_time < wait_timeout )
@@ -157,7 +145,8 @@ void mqtt_restore() {
     unsigned long start_time = millis();
     mqtt_pathsubs = mqtt_pathconf;
     mqtt_subscribe(mqtt_pathconf, "BckpRstr");
-    while (bckup_rstr_flag && millis() - start_time < rstr_syn_timeout )
+    bckp_rstr_flag = false;
+    while (!bckp_rstr_flag && millis() - start_time < rstr_syn_timeout )
     {
         MQTTclient.loop();
     }

@@ -28,13 +28,14 @@
 #include <console.h>
 #include <ntp.h>
 #include <mqtt.h>
-#include <ota.h>
-#include <project.h>
 #include <global.h>
+#include <peripherals.h>
 #include <hassio.h>
+#include <ota.h>
 #ifndef ESP8285
     #include <web.h>
 #endif
+#include <project.h>
 #include <actions.h>                        // Added later because functions from project are called here.
 
 
@@ -58,8 +59,8 @@ void setup() {
   // Start ESP specific features, such as: Serial Number, ESP_LED, internal ADC, ...
       hw_setup();
 
-  //  Project HW initialization, such as: GPIO config, Sensors, Actuators, ...  
-      project_hw();
+  //  Project peripherals initialization, such as: GPIO config, Sensors, Actuators, ...  
+      peripherals_setup();
 
   // Start WiFi service (Station or/and as Access Point)
       wifi_setup();
@@ -69,7 +70,7 @@ void setup() {
 //      http_upg();               // Note: this service kills all running UDP and TCP services
 //#endif
   // Start TELNET console service
-      if (config.TELNET) telnet_setup();
+      telnet_setup();
 
   // Start NTP service
       ntp_setup();
@@ -78,7 +79,7 @@ void setup() {
       mqtt_setup();
 
   // Start OTA service
-      if (config.OTA) ota_setup();
+      ota_setup();
 
 #ifndef ESP8285
   // Start ESP Web Service

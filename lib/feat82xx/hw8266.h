@@ -18,12 +18,15 @@ bool Celular_Connected = false;                          // Modem Connection sta
 
 // The ESP8266 RTC memory is arranged into blocks of 4 bytes. The access methods read and write 4 bytes at a time,
 // so the RTC data structure should be padded to a 4-byte multiple.
-struct __attribute__((__packed__)) struct_RTC {
-  uint32_t crc32 = 0U;                      // 4 bytes   4 in total
-  uint8_t bssid[6];                         // 6 bytes, 10 in total
-  uint8_t LastWiFiChannel = 0;              // 1 byte,  11 in total
-  uint8_t padding = 0;                      // 1 byte,  12 in total
-  unsigned long lastUTCTime = 0UL;          // 4 bytes? 16 in total
+struct __attribute__((__packed__, aligned(4))) struct_RTC {
+  uint32_t crc32 = 0U;                      // 4 bytes   
+  unsigned long lastUTCTime = 0UL;          // 4 bytes
+  uint8_t bssid[6];                        // 32 bytes
+  uint8_t LastWiFiChannel = 0;              // 1 byte,   1 in total
+  //uint8_t padding[3];                       // 2 bytes,  4 in total
+  uint8_t ByteValue = 0;                    // 1 byte,   2 in total
+  //uint8_t padding1[3];                      // 2 bytes,  4 in total
+  float FloatValue = 0.0f;                  // 4 bytes
 } rtcData;
 
 static const String flash_size_map_Name[] = {
@@ -46,7 +49,6 @@ static const String flash_size_map_Name[] = {
     ADC_MODE(ADC_VCC)                       // Get voltage from Internal ADC
 #endif
 
-#define Default_ADC_PIN A0
 
 #ifndef ESP8285
 // Initialize the Webserver
@@ -172,10 +174,12 @@ bool RTC_read() {
         uint32_t crc = calculateCRC32( ((uint8_t*)&rtcData) + 4, sizeof( rtcData ) - 4 );
         if( crc == rtcData.crc32 ) {
             if (config.DEBUG) {
-                Serial.print("Read  crc: " + String(rtcData.crc32) + "\t");
-                Serial.print("Read  BSSID: " + CharArray_to_StringHEX((const char*)rtcData.bssid, sizeof(rtcData.bssid)) + "\t");
-                Serial.print("Read  LastWiFiChannel: " + String(rtcData.LastWiFiChannel) + "\t");
-                Serial.println("Read  Last Date: " + String(rtcData.lastUTCTime));
+                Serial.print("Read  crc: " + String(rtcData.crc32) + "  -  ");
+                Serial.print("Read  Last Date: " + String(rtcData.lastUTCTime) + "  -  ");
+                Serial.print("Read  BSSID: " + CharArray_to_StringHEX((const char*)rtcData.bssid, sizeof(rtcData.bssid)) + "  -  ");
+                Serial.print("Read  LastWiFiChannel: " + String(rtcData.LastWiFiChannel) + "  -  ");
+                Serial.print("Read  Byte Value: " + String(rtcData.ByteValue) + "  -  ");
+                Serial.println("Read  Float Value: " + String(rtcData.FloatValue));
             }
             return true;
         }
@@ -185,15 +189,17 @@ bool RTC_read() {
 
 bool RTC_write() {
 // Update rtcData structure
-    rtcData.LastWiFiChannel = WiFi.channel();
+    if ( WiFi.status() == WL_CONNECTED ) rtcData.LastWiFiChannel = WiFi.channel();
     memcpy( rtcData.bssid, WiFi.BSSID(), 6 ); // Copy 6 bytes of BSSID (AP's MAC address)
     rtcData.crc32 = calculateCRC32( ((uint8_t*)&rtcData) + 4, sizeof( rtcData ) - 4 );
     //rtcData.lastUTCTime = curUnixTime();
     if (config.DEBUG) {
         Serial.print("Write crc: " + String(rtcData.crc32) + "  -  ");
+        Serial.print("Write Last Date: " + String(rtcData.lastUTCTime) + "  -  ");
         Serial.print("Write BSSID: " + CharArray_to_StringHEX((const char*)rtcData.bssid, sizeof(rtcData.bssid)) + "  -  ");
         Serial.print("Write LastWiFiChannel: " + String(rtcData.LastWiFiChannel) + "  -  ");
-        Serial.println("Write Last Date: " + String(rtcData.lastUTCTime));
+        Serial.print("Write Byte value: " + String(rtcData.ByteValue) + "  -  ");
+        Serial.println("Write Float value: " + String(rtcData.FloatValue));
     }
 
 // Write rtcData back to RTC memory
@@ -232,7 +238,7 @@ float getBattLevel() {                                      // return Battery le
     };
     voltage = voltage / Number_of_measures;
     voltage = voltage / 1000.0 + config.LDO_Corr;
-    if (config.DEBUG) Serial.println("Averaged and Corrected Voltage: " + String(voltage));
+    if (config.DEBUG) Serial.println(" Averaged and Corrected Voltage: " + String(voltage));
     if (voltage > Batt_Max ) {
         if (config.DEBUG) Serial.println("Voltage will be truncated to Batt_Max: " + String(Batt_Max));
         voltage = Batt_Max;
