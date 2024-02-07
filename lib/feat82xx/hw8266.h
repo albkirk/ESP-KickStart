@@ -10,10 +10,10 @@
 
 //System Parameters
 #define ChipID HEXtoUpperString(ESP.getChipId(), 6)
-#define ESP_SSID String("ESP-" + ChipID)               // SSID used as Acces Point
-#define Number_of_measures 5                           // Number of value samples (measurements) to calculate average
-byte SLEEPTime = config.SLEEPTime;          // Variable to allow temporary change the sleeptime (ex.: = 0)
-bool Celular_Connected = false;                          // Modem Connection state
+#define ESP_SSID String("ESP-" + ChipID)                // SSID used as Acces Point
+#define Number_of_measures 5                            // Number of value samples (measurements) to calculate average
+byte SLEEPTime = config.SLEEPTime;                      // Variable to allow temporary change the sleeptime (ex.: = 0)
+bool Celular_Connected = false;                         // Modem Connection state
 
 
 // The ESP8266 RTC memory is arranged into blocks of 4 bytes. The access methods read and write 4 bytes at a time,
@@ -21,7 +21,7 @@ bool Celular_Connected = false;                          // Modem Connection sta
 struct __attribute__((__packed__, aligned(4))) struct_RTC {
   uint32_t crc32 = 0U;                      // 4 bytes   
   unsigned long lastUTCTime = 0UL;          // 4 bytes
-  uint8_t bssid[6];                        // 32 bytes
+  uint8_t bssid[6];                         // 32 bytes
   uint8_t LastWiFiChannel = 0;              // 1 byte,   1 in total
   //uint8_t padding[3];                       // 2 bytes,  4 in total
   uint8_t ByteValue = 0;                    // 1 byte,   2 in total
@@ -30,17 +30,17 @@ struct __attribute__((__packed__, aligned(4))) struct_RTC {
 } rtcData;
 
 static const String flash_size_map_Name[] = {
-    "512KB (MAP: 256/256)",                    /**<  Flash size : 4Mbits. Map : 256KBytes + 256KBytes */
-    "256KB (MAP: 256/ - )",                    /**<  Flash size : 2Mbits. Map : 256KBytes */
-    "1MB (MAP: 512/512)",                    /**<  Flash size : 8Mbits. Map : 512KBytes + 512KBytes */
-    "2MB (MAP: 512/512)",                   /**<  Flash size : 16Mbits. Map : 512KBytes + 512KBytes */
-    "4MB (MAP: 512/512)",                   /**<  Flash size : 32Mbits. Map : 512KBytes + 512KBytes */
-    "2MB (MAP: 1024/1024)",                 /**<  Flash size : 16Mbits. Map : 1024KBytes + 1024KBytes */
-    "4MB (MAP: 1024/1024)",                 /**<  Flash size : 32Mbits. Map : 1024KBytes + 1024KBytes */
-    "4MB (MAP: 2048/2048)",                 /**<  attention: don't support now ,just compatible for nodemcu;
-                                                  Flash size : 32Mbits. Map : 2048KBytes + 2048KBytes */
-    "8MB (MAP: 1024/1024)",                 /**<  Flash size : 64Mbits. Map : 1024KBytes + 1024KBytes */
-    "16MB (MAP: 1024/1024)"                 /**<  Flash size : 128Mbits. Map : 1024KBytes + 1024KBytes */
+    "512KB (MAP: 256/256)",                 /*  Flash size : 4Mbits. Map : 256KBytes + 256KBytes */
+    "256KB (MAP: 256/ - )",                 /*  Flash size : 2Mbits. Map : 256KBytes */
+    "1MB (MAP: 512/512)",                   /*  Flash size : 8Mbits. Map : 512KBytes + 512KBytes */
+    "2MB (MAP: 512/512)",                   /*  Flash size : 16Mbits. Map : 512KBytes + 512KBytes */
+    "4MB (MAP: 512/512)",                   /*  Flash size : 32Mbits. Map : 512KBytes + 512KBytes */
+    "2MB (MAP: 1024/1024)",                 /*  Flash size : 16Mbits. Map : 1024KBytes + 1024KBytes */
+    "4MB (MAP: 1024/1024)",                 /*  Flash size : 32Mbits. Map : 1024KBytes + 1024KBytes */
+    "4MB (MAP: 2048/2048)",                 /*   NOTE!: NOT supported, just to make compatible for nodemcu;
+                                                 Flash size : 32Mbits. Map : 2048KBytes + 2048KBytes */
+    "8MB (MAP: 1024/1024)",                 /*  Flash size : 64Mbits. Map : 1024KBytes + 1024KBytes */
+    "16MB (MAP: 1024/1024)"                 /*  Flash size : 128Mbits. Map : 1024KBytes + 1024KBytes */
 };
 
 
@@ -64,33 +64,10 @@ ESP8266WebServer MyWebServer(80);
 WiFiClient unsecuclient;                    // Use this for unsecure connection
 
 // Battery & ESP Voltage
-#define Batt_Max float(4.1)                 // Battery Highest voltage.  [v]
+#define Batt_Max float(4.2)                 // Battery Highest voltage.  [v]
 #define Batt_Min float(2.8)                 // Battery lowest voltage.   [v]
 #define Vcc float(3.3)                      // Theoretical/Typical ESP voltage. [v]
 #define VADC_MAX float(1.0)                 // Maximum ADC Voltage input
-
-// Timers for millis used on Sleeping and LED flash
-unsigned long ONTime_Offset=0;              // [msec]
-unsigned long Extend_time=0;                // [sec]
-unsigned long now_millis=0;
-unsigned long Pace_millis=3000;
-unsigned long LED_millis=300;               // 10 slots available (3000 / 300)
-unsigned long BUZZER_millis=100;            // Buzz time (120ms Sound + 120ms  Silent)
-
-
-// Standard Actuators STATUS
-float CALIBRATE = 0;                        // float
-float CALIBRATE_Last = 0;                   // float
-unsigned int LEVEL = 0;                     // [0-100]
-unsigned int LEVEL_Last = 0;                // [0-100]
-int POSITION = 0;                           // [-100,+100]
-int POSITION_Last = 0;                      // [-100,+100]
-bool SWITCH = false;                        // [OFF / ON]
-bool SWITCH_Last = false;                   // [OFF / ON]
-unsigned long TIMER = 0;                    // [0-7200]  Minutes                 
-unsigned long TIMER_Last = 0;               // [0-7200]  Minutes                 
-static long TIMER_Current = 0;
-unsigned long COUNTER = 0;
 
 
 // Functions //
@@ -290,42 +267,10 @@ void FormatConfig() {                                   // WARNING!! To be used 
     ESP.reset();
 }
 
-void blink_LED(unsigned int slot, int bl_LED = LED_ESP, bool LED_OFF = !config.LED) { // slot range 1 to 10 =>> 3000/300
-    if (bl_LED>=0) {
-        now_millis = millis() % Pace_millis;
-        if (now_millis > LED_millis*(slot-1) && now_millis < LED_millis*slot-LED_millis/2) digitalWrite(bl_LED, !LED_OFF); // Turn LED on
-        now_millis = (millis()-LED_millis/3) % Pace_millis;
-        if (now_millis > LED_millis*(slot-1) && now_millis < LED_millis*slot-LED_millis/2) digitalWrite(bl_LED, LED_OFF); // Turn LED on
-    }
-}
-
-void flash_LED(unsigned int n_flash = 1, int fl_LED = LED_ESP, bool LED_OFF = !config.LED) {
-    if (fl_LED>=0) {
-        for (size_t i = 0; i < n_flash; i++) {
-            digitalWrite(fl_LED, !LED_OFF);             // Turn LED on
-            delay(LED_millis/3);
-            digitalWrite(fl_LED, LED_OFF);              // Turn LED off
-            yield();
-            delay(LED_millis);
-        }
-    }
-}
-
-void Buzz(unsigned int n_beeps = 1, unsigned long buzz_time = BUZZER_millis ) {
-    if (BUZZER>=0) {
-        for (size_t i = 0; i < n_beeps; i++) {
-            digitalWrite(BUZZER, HIGH);                 // Turn Buzzer on
-            delay(BUZZER_millis);
-            digitalWrite(BUZZER, LOW);                  // Turn Buzzer off
-            yield();
-            delay(BUZZER_millis);
-        }
-    }
-}
-
 
 void hw_setup() {
-  // Output GPIOs
+    yield();
+/*  // Output GPIOs
       if (LED_ESP>=0) {
           pinMode(LED_ESP, OUTPUT);
           digitalWrite(LED_ESP, HIGH);                  // initialize LED off
@@ -348,7 +293,7 @@ void hw_setup() {
             }
         }
     }
-
+*/
 
       //RTC_read();                                      // Read the RTC memmory
 }

@@ -173,9 +173,10 @@ void mqtt_setcallback() {
 }
 
 void mqtt_init_path() {
-    mqtt_pathtele = String(config.ClientID) + "/" + String(ChipID) + "/" + String(MODELName) + "/inform/";
-    mqtt_pathcomd = String(config.ClientID) + "/" + String(ChipID) + "/" + String(MODELName) + "/command/";
-    mqtt_pathconf = String(config.ClientID) + "/" + String(ChipID) + "/" + String(MODELName) + "/config/";
+    mqtt_pathbase = String(config.ClientID) + "/" + String(ChipID) + "/" + String(MODELName);
+    mqtt_pathtele = mqtt_pathbase + "/inform/";
+    mqtt_pathcomd = mqtt_pathbase + "/command/";
+    mqtt_pathconf = mqtt_pathbase + "/config/";
     mqtt_pathsubs = mqtt_pathcomd;
 }
 

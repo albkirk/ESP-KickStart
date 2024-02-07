@@ -1,5 +1,5 @@
-#include "esp32/ulp.h"
 #include "driver/rtc_io.h"
+#include "esp32/ulp.h"
 
 #define LED_ULP 22                  // LED used during ULP mode (typically the onboard LED)
 

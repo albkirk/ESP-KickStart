@@ -13,8 +13,9 @@
 #ifdef IP5306
     #include <ip5306.h>
 #endif
-#include <myulp.h>
-
+#ifndef ESP32C3
+   #include <myulp.h>
+#endif
 
 uint32_t getChipId();
 String HEXtoUpperString(uint32_t hexval, uint hexlen);
@@ -29,12 +30,15 @@ bool Celular_Connected = false;             // Modem Connection state
 
 // The ESP8266 RTC memory is arranged into blocks of 4 bytes. The access methods read and write 4 bytes at a time,
 // so the RTC data structure should be padded to a 4-byte multiple.
-struct __attribute__((__packed__)) struct_RTC {
-  uint32_t crc32 = 0U;                      // 4 bytes   4 in total
-  uint8_t bssid[6];                         // 6 bytes, 10 in total
-  uint8_t LastWiFiChannel = 0;              // 1 byte,  11 in total
-  uint8_t padding = 0;                      // 1 byte,  12 in total
-  unsigned long lastUTCTime = 0UL;          // 4 bytes? 16 in total
+struct __attribute__((__packed__, aligned(4))) struct_RTC {
+  uint32_t crc32 = 0U;                      // 4 bytes   
+  unsigned long lastUTCTime = 0UL;          // 4 bytes
+  uint8_t bssid[6];                         // 32 bytes
+  uint8_t LastWiFiChannel = 0;              // 1 byte,   1 in total
+  //uint8_t padding[3];                       // 2 bytes,  4 in total
+  uint8_t ByteValue = 0;                    // 1 byte,   2 in total
+  //uint8_t padding1[3];                      // 2 bytes,  4 in total
+  float FloatValue = 0.0f;                  // 4 bytes
 } rtcData;
 
 Preferences preferences;                    // Preferences library is wrapper around Non-volatile storage on ESP32 processor.
@@ -63,29 +67,6 @@ WiFiClient unsecuclient;                    // Use this for unsecure connection
 #define Batt_Min float(2.8)                 // Battery lowest voltage.   [v]
 #define Vcc float(3.3)                      // Theoretical/Typical ESP voltage. [v]
 #define VADC_MAX float(3.3)                 // Maximum ADC Voltage input
-
-// Timers for millis used on Sleeping and LED flash
-unsigned long ONTime_Offset=0;              // [msec]
-unsigned long Extend_time=0;                // [sec]
-unsigned long now_millis=0;
-unsigned long Pace_millis=3000;
-unsigned long LED_millis=300;               // 10 slots available (3000 / 300)
-unsigned long BUZZER_millis=100;            // Buzz time (120ms Sound + 120ms  Silent)
-
-
-// Standard Actuators STATUS
-float CALIBRATE = 0;                        // float
-float CALIBRATE_Last = 0;                   // float
-unsigned int LEVEL = 0;                     // [0-100]
-unsigned int LEVEL_Last = 0;                // [0-100]
-int POSITION = 0;                           // [-100,+100]
-int POSITION_Last = 0;                      // [-100,+100]
-bool SWITCH = false;                        // [OFF / ON]
-bool SWITCH_Last = false;                   // [OFF / ON]
-unsigned long TIMER = 0;                    // [0-7200]  Minutes                 
-unsigned long TIMER_Last = 0;               // [0-7200]  Minutes                 
-static long TIMER_Current = 0;
-unsigned long COUNTER = 0;
 
 
 // Functions //
@@ -251,7 +232,9 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
     if ( Ext1WakeUP>=0 && (Time_minutes == 0 || Time_minutes > 5) ) {
         const uint64_t ext1_wakeup_pin_1_mask = 1ULL << Ext1WakeUP;      // -1 Warning during compilling
         //const uint64_t ext1_wakeup_pin_1_mask = Ext1WakeUP;
+#ifndef ESP32C3
         esp_sleep_enable_ext1_wakeup(ext1_wakeup_pin_1_mask, ESP_EXT1_WAKEUP_ALL_LOW);
+#endif
 //  Example using two PINs for external Wake UP 
 //      const int ext_wakeup_pin_1 = 2;
 //      const uint64_t ext_wakeup_pin_1_mask = 1ULL << ext_wakeup_pin_1;
@@ -261,12 +244,12 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
 //      esp_sleep_enable_ext1_wakeup(ext_wakeup_pin_1_mask | ext_wakeup_pin_2_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
 
     }
-
+#ifndef ESP32C3
     if (config.HW_Module) {
         if(config.DEBUG) Serial.println("Enabling ULP during deepsleep");
         ulp_action(1000000);                                       // 10 second loop
     }
-    
+#endif
     if (Time_minutes > 0) {
         calculate_sleeptime = uint64_t( ((Time_minutes * 60000UL) - millis()%(Time_minutes * 60000UL)) ) * 1000ULL;
         //Serial.printf("calculate_sleeptime :%llu\n", calculate_sleeptime);
@@ -376,40 +359,6 @@ void FormatConfig() {                                   // WARNING!! To be used 
 }
 */
 
-void blink_LED(unsigned int slot, int bl_LED = LED_ESP, bool LED_OFF = config.LED) { // slot range 1 to 10 =>> 3000/300
-    if (bl_LED>=0) {
-        now_millis = millis() % Pace_millis;
-        if (now_millis > LED_millis*(slot-1) && now_millis < LED_millis*slot-LED_millis/2) digitalWrite(bl_LED, !LED_OFF); // Turn LED on
-        now_millis = (millis()-LED_millis/3) % Pace_millis;
-        if (now_millis > LED_millis*(slot-1) && now_millis < LED_millis*slot-LED_millis/2) digitalWrite(bl_LED, LED_OFF); // Turn LED on
-    }
-}
-
-void flash_LED(unsigned int n_flash = 1, int fl_LED = LED_ESP, bool LED_OFF = config.LED) {
-    if (fl_LED>=0) {
-        for (size_t i = 0; i < n_flash; i++) {
-            digitalWrite(fl_LED, !LED_OFF);             // Turn LED on
-            delay(LED_millis/3);
-            digitalWrite(fl_LED, LED_OFF);              // Turn LED off
-            yield();
-            delay(LED_millis);
-        }
-    }
-}
-
-void Buzz(unsigned int n_beeps = 1, unsigned long buzz_time = BUZZER_millis ) {
-    if (BUZZER>=0) {
-        for (size_t i = 0; i < n_beeps; i++) {
-            digitalWrite(BUZZER, HIGH);                 // Turn Buzzer on
-            delay(BUZZER_millis);
-            digitalWrite(BUZZER, LOW);                  // Turn Buzzer off
-            yield();
-            delay(BUZZER_millis);
-        }
-    }
-}
-
-
 void hw_setup() {
   // Initiate Power Management CHIP      
     #ifdef IP5306
@@ -420,29 +369,6 @@ void hw_setup() {
         Serial.println("  -  Batt charging: "  + String(isCharging()) + "  ... and/or fully Charged: "  + String(isChargeFull()));
     #endif
 
-  // Output GPIOs
-    if (LED_ESP>=0) {
-        pinMode(LED_ESP, OUTPUT);
-        digitalWrite(LED_ESP, LOW);                     // initialize LED off
-    }
-    if (BUZZER>=0) {
-        pinMode(BUZZER, OUTPUT);
-        digitalWrite(BUZZER, LOW);                      // initialize BUZZER off
-    }
-
-  // Input GPIOs
-    if (Def_Config>=0) {
-        pinMode(Def_Config, INPUT_PULLUP);
-        if (!digitalRead(Def_Config)) {
-            delay(5000);
-            if (!digitalRead(Def_Config)) {
-                flash_LED(5);
-                storage_reset();
-                RTC_reset();
-                ESPRestart();
-            }
-        }
-    }
 
   // ADC setup
     analogSetPinAttenuation(Default_ADC_PIN,ADC_11db);   // ADC_11db provides an attenuation so that IN/OUT = 1 / 3.6.

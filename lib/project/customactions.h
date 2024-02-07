@@ -8,17 +8,20 @@ void custom_mqtt(String command, String cmd_value) {
             else {
                 strcpy(config.DeviceName, config_doc["DeviceName"]);
                 strcpy(config.Location, config_doc["Location"]);
-
+/*
+                config.LOWER_LEVEL =    config_doc["LOWER_Pos"];
+                config.UPPER_LEVEL =    config_doc["UPPER_Pos"];
+*/
                 storage_write();
                 bckp_rstr_flag = true;
                 telnet_println("BckpRstr with success");
             }
         }
     }
-}
+
 //  if ( command == "send_Telemetry" && bool(cmd_value.toInt())) { gps_update(); print_gps_data(); send_Telemetry(); }
 
-
+}
 
 void custom_update(){
     yield();

@@ -126,7 +126,7 @@ struct __attribute__((__packed__)) strConfig {
   double Voltage_Multiplier;
   double Current_Multiplier;
   double Power_Multiplier;
-  char InitColor[10];
+  char InitColor[8];
   byte Volume;
   bool Alarm_State;
   strDateTime AlarmDateTime;  

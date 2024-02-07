@@ -56,8 +56,8 @@ void setup() {
   // Start Storage service and read stored configuration
       storage_setup();
 
-  // Start ESP specific features, such as: Serial Number, ESP_LED, internal ADC, ...
-      hw_setup();
+  // Start Global features, such as: ESP_LED, Buzzer, internal ADC, ...
+      global_setup();
 
   //  Project peripherals initialization, such as: GPIO config, Sensors, Actuators, ...  
       peripherals_setup();
@@ -89,10 +89,7 @@ void setup() {
   // **** Project SETUP Sketch code here...
       project_setup();
 
-  // Global setup
-      global_setup();
-
-  // all setup tasks done; time to prompt
+  // with all setup tasks done it's time to prompt!
       console_prompt();
 
   // Last bit of code before leave setup
@@ -105,8 +102,8 @@ void loop() {
   // allow background process to run.
       yield();
 
-  // Hardware handling, namely the ESP_LED
-      hw_loop();
+  // Global handling, namely the button to return to default configuration
+      //global_loop();
 
   // WiFi handling
       wifi_loop();

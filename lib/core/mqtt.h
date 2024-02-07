@@ -1,5 +1,5 @@
 // MQTT Constants
-#define MQTT_new_MAX_PACKET_SIZE 512                // Default: 256 bytes
+#define MQTT_new_MAX_PACKET_SIZE 640                // Default: 256 bytes
 #define MQTT_new_KEEPALIVE 60                       // Default: 15 seconds
 #define MQTT_new_SOCKET_TIMEOUT 5                   // Default: 15 seconds
 #include <PubSubClient.h>
@@ -33,9 +33,10 @@ static const String MQTT_state_Name[] = {
 };
 
 int16_t MQTT_state = MQTT_DISCONNECTED;             // MQTT state
-uint16_t MQTT_Retry = 125;                          // Timer to retry the MQTT connection
+uint16_t MQTT_Retry = 125;                          // Time [in sec] to retry the MQTT connection
 uint16_t MQTT_errors = 0;                           // MQTT errors Counter
 uint32_t MQTT_LastTime = 0;                         // Last MQTT connection attempt time stamp
+static String mqtt_pathbase = "";                   // MQTT Topic path base
 static String mqtt_pathtele = "";                   // Topic path for publish information
 static String mqtt_pathcomd = "";                   // Topic path for receiving commands
 static String mqtt_pathconf = "";                   // Topic path for Backup/Restore data (JSON string)

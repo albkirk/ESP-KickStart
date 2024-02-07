@@ -19,25 +19,16 @@ void hassio_device(String name = (String(config.DeviceName) + " " + String(confi
     // Purge old JSON data and Load new values
     device_doc.clear();
     device_doc["name"]                  = name;                                 // Device friendly name
-    device_doc["ids"]                   = ids;  //before 2023 was ids;          // identifiers
-    //device_doc["cns"] = String("['IP','" + WiFi.localIP().toString() + "']"); // connections
+    device_doc["ids"]                   = ids;                                  // identifiers
     device_doc["mf"]                    = BRANDName;                            // manufacturer
     device_doc["mdl"]                   = MODELName;                            // model
     device_doc["sw"]                    = SWVer;                                // sw_version
 }
 
-void trigger_discovery() {                                                      // NO longer in use... 
-    String mqtt_pathhassio = String(discovery_prefix) + "/";
-
+void hassio_ids(String name = (String(config.DeviceName) + " " + String(config.Location) ), String ids = ChipID) {      // A short version of hassio_device
     device_doc.clear();
-    device_doc["ChipID"]                = ChipID;                               // Chip identifier
-    device_doc["DeviceName"]            = config.DeviceName;                    // Device friendly name
-    device_doc["Location"]              = config.Location;                      // Device Location
-    device_doc["sw"]                    = SWVer;                                // sw_version
-
-    serializeJson(device_doc, device_jsonString);                                //Serialize JSON data to string
-    //telnet_println("Trigger Discovery: " + String(device_jsonString));
-    mqtt_publish(mqtt_pathhassio, "Discovery", String(device_jsonString), false);
+    //device_doc["name"]                  = name;                                 // Device friendly name
+    device_doc["ids"]                   = ids;                                  // identifiers
 }
 
 void send_attributes(String param) {
@@ -49,7 +40,7 @@ void send_attributes(String param) {
 
 void send_status_attributes(String param) {
     attributes_doc.clear();
-    attributes_doc["SWVer"]             = SWVer;                                // Software Version
+    //attributes_doc["SWVer"]             = SWVer;                                // Software Version
     attributes_doc["CPUClock"]          = CPU_Clock();                          // CPU Clock
     attributes_doc["Boot"]              = ESPWakeUpReason();                    // Boot Reason
     if (WIFI_state == WL_CONNECTED) attributes_doc["IP"] = WiFi.localIP().toString(); // WiFi IP address
@@ -89,7 +80,7 @@ void send_switch_attributes(String param) {
 // HASSIO Configuration registration
 // NOTE! entity and device_class must be lowecased, except "None"
 // check for entity and device_class in https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
-void config_entity(String entity, String device_class, String param = "", String device = "", String mqtt_path_stat = mqtt_pathtele) {
+void config_entity(String entity, String device_class, String param = "", String device = "") {
     if(param == "") param = device_class;       // use the "device_class" as "param" value
 
     // Discovery Topic: // <discovery_prefix>/<entity>/[<node_id>/]<object_id>/config
@@ -99,47 +90,48 @@ void config_entity(String entity, String device_class, String param = "", String
     
     // Purge old JSON data and Load new values
     discovery_doc.clear();
+    discovery_doc["~"]                  = mqtt_pathbase;        //defines the topic based Path 
     if (device == "Golf" || device == "Megane") {
         discovery_doc["uniq_id"]        = device + '-' + param;
         discovery_doc["name"]           = device + ' ' + param;
     }
     else {
         discovery_doc["uniq_id"]        = ChipID + '_' + param;
-        discovery_doc["name"]           = param.c_str();          // until 23.07 ChipID + ' ' + param;
+        discovery_doc["name"]           = param.c_str();        // until 23.07 ChipID + ' ' + param;
     }
 
-//    discovery_doc["name"]               = ChipID + ' ' + param;
-//    if(device == "") discovery_doc["name"] = config.Location;
-//    else discovery_doc["name"]          = config.Location + String(' ') + param;
+    if(entity == "sensor" && param == "Status") hassio_device();    //Only Status Sensor gets the device complete description
+    else hassio_ids();
     discovery_doc["dev"]                = device_doc;
+
 
     if(entity == "cover") {
         if(device_class != "None") discovery_doc["device_class"] = device_class;// Device_class (ex.: shutter)
-        discovery_doc["cmd_t"]          = mqtt_pathcomd + param;                // command_topic
-        discovery_doc["pos_t"]          = mqtt_path_stat + param;               // position_topic
-        discovery_doc["set_pos_t"]      = mqtt_pathcomd + param;                // set_position_topic
+        discovery_doc["cmd_t"]          = "~/command/" + param;                 // command_topic
+        discovery_doc["pos_t"]          = "~/inform/" + param;                  // position_topic
+        discovery_doc["set_pos_t"]      = "~/command/" + param;                 // set_position_topic
         discovery_doc["pos_tpl"]        = "{{ value | int }}";
     }
 
     if(entity == "switch") {
-        discovery_doc["stat_t"]         = mqtt_path_stat + param;               // state_topic
-        discovery_doc["cmd_t"]          = mqtt_pathcomd + param;                // command_topic
+        discovery_doc["stat_t"]         = "~/inform/" + param;                  // state_topic
+        discovery_doc["cmd_t"]          = "~/command/" + param;                 // command_topic
 
         if(param == "LED") discovery_doc["icon"] = "hass:lighthouse-on";
         if(param == "Exterior") { 
-            //discovery_doc["json_attr_t"] = mqtt_path_stat + "attr_" + param;    // Attributes topic
+            //discovery_doc["json_attr_t"] = "~/inform/" + "attr_" + param;     // Attributes topic
             discovery_doc["icon"]       = "hass:coach-lamp";
         }
         if(param == "Interior") { 
-            //discovery_doc["json_attr_t"] = mqtt_path_stat + "attr_" + param;     // Attributes topic
+            //discovery_doc["json_attr_t"] = "~/inform/" + "attr_" + param;     // Attributes topic
             discovery_doc["icon"]       = "hass:ceiling-light";
         }
         if(param == "Socket") { 
-            //discovery_doc["json_attr_t"] = mqtt_path_stat + "attr_" + param;     // Attributes topic
+            //discovery_doc["json_attr_t"] = "~/inform/" + "attr_" + param;     // Attributes topic
             discovery_doc["icon"]       = "hass:power-socket-fr";
         }
         if(param == "Switch" || param == "Switch2") { 
-            //discovery_doc["json_attr_t"] = mqtt_path_stat + "attr_" + param;     // Attributes topic
+            //discovery_doc["json_attr_t"] = "~/inform/" + "attr_" + param;     // Attributes topic
             discovery_doc["icon"] = "hass:power";
         }
         if (param == "SpeedoMeter") { 
@@ -148,25 +140,25 @@ void config_entity(String entity, String device_class, String param = "", String
         }
         //discovery_doc["stat_off"]     = "0";
         //discovery_doc["stat_on"]      = "1";
-        discovery_doc["pl_off"]         = "0";                                      // Payload_off
-        discovery_doc["pl_on"]          = "1";                                      // Payload_on
+        discovery_doc["pl_off"]         = "0";                                  // Payload_off
+        discovery_doc["pl_on"]          = "1";                                  // Payload_on
     }
 
     if(entity == "binary_sensor") {
         if(device_class != "None") discovery_doc["device_class"] = device_class;
-        discovery_doc["stat_t"]         = mqtt_path_stat + param;                   // state_topic
-        discovery_doc["pl_off"]         = "0";                                      // Payload_off
-        discovery_doc["pl_on"]          = "1";                                      // Payload_on
+        discovery_doc["stat_t"]         = "~/inform/" + param;                  // state_topic
+        discovery_doc["pl_off"]         = "0";                                  // Payload_off
+        discovery_doc["pl_on"]          = "1";                                  // Payload_on
 
     }
 
     if(entity == "sensor") {
         if(device_class != "None") discovery_doc["device_class"] = device_class;
         
-        if (device == "PowerPlug" || device == "Telemetry") discovery_doc["stat_t"] = mqtt_path_stat + device;             // state_topic
-        else discovery_doc["stat_t"]         = mqtt_path_stat + param;                            // state_topic
+        if (device == "PowerPlug" || device == "Telemetry") discovery_doc["stat_t"] = "~/inform/" + device;             // state_topic
+        else discovery_doc["stat_t"]         = "~/inform/" + param;                             // state_topic
     
-        if(param == "Status") discovery_doc["json_attr_t"] = mqtt_path_stat + "attr_" + param;    // Attributes topic
+        if(param == "Status") discovery_doc["json_attr_t"] = "~/inform/attr_" + param;          // Attributes topic
 
         if(param == "Timer" || param == "Timer2") discovery_doc["icon"] = "hass:timer-outline";
 
@@ -217,6 +209,44 @@ void config_entity(String entity, String device_class, String param = "", String
             discovery_doc["icon"]         = "hass:transmission-tower";
         }
     }
+
+    if(entity == "light") {
+        if(device_class != "None") discovery_doc["device_class"] = device_class;    // Device_class (ex.: shutter)
+        discovery_doc["stat_t"]         = "~/inform/Light";                         // state_topic
+        discovery_doc["pl_off"]         = "0";                                      // Payload_off
+        discovery_doc["pl_on"]          = "1";                                      // Payload_on
+        discovery_doc["cmd_t"]          = "~/command/Light";                        // command_topic
+        discovery_doc["rgb_stat_t"]     = "~/inform/Color";                         // rgb_state_topic
+        discovery_doc["rgb_cmd_t"]      = "~/command/Color";                        // rgb_command_topic
+        discovery_doc["rgb_val_tpl"]    = "{{(int(value[1:3], base=16), int(value[3:5],base=16), int(value[5:7],base=16)) | join(',')}}";   // rgb_value_template
+        discovery_doc["bri_stat_t"]     = "~/inform/Gain";                        // brightness_state_topic
+        discovery_doc["bri_cmd_t"]      = "~/command/Gain";                       // brightness_command_topic
+        //effect_command_topic
+        // state_topic: "office/rgb1/light/status"
+        // command_topic: "office/rgb1/light/switch"
+        // brightness_state_topic: "office/rgb1/brightness/status"
+        // brightness_command_topic: "office/rgb1/brightness/set"
+        // rgb_state_topic: "office/rgb1/rgb/status"
+        // rgb_command_topic: "office/rgb1/rgb/set"
+        // state_value_template: "{{ value_json.state }}"
+        // brightness_value_template: "{{ value_json.brightness }}"
+        // rgb_value_template: "{{ value_json.rgb | join(',') }}"
+
+    }
+/*
+'rgb_cmd_t':           'rgb_command_topic',
+'rgb_cmd_tpl':         'rgb_command_template',
+'rgb_stat_t':          'rgb_state_topic',
+'rgb_val_tpl':         'rgb_value_template',
+'bri_cmd_t':           'brightness_command_topic',
+'bri_cmd_tpl':         'brightness_command_template',
+'bri_scl':             'brightness_scale',
+'bri_stat_t':          'brightness_state_topic',
+'bri_tpl':             'brightness_template',
+'bri_val_tpl':         'brightness_value_template',
+*/
+
+
 
     serializeJson(discovery_doc, discovery_jsonString);                     //Serialize JSON data to string
     //telnet_println("HASSIO Config: " + String(discovery_jsonString));
@@ -290,23 +320,21 @@ void delete_trigger(String subtype = "Button_1", String param = "") {
 
 void hassio_discovery() {
     HASSIO_Fail = 0;
-    hassio_device();
     config_entity("sensor", "None", "Status");
     //delay(10); send_status_attributes("Status");          // dont' need to execute here because this is done later
     if (BattPowered) config_entity("sensor", "battery", "Battery");
     else delete_entity("sensor", "battery", "Battery");
     if (LED_ESP>=0) config_entity("switch", "switch", "LED");
     config_entity("sensor", "signal_strength", "RSSI");
-    //config_trigger_boot();                                // not used
     custo_hassio_disc();
     if (HASSIO_Fail == 0 ) {
         config.HASSIO_CFG = true;
         storage_write();
     }
+    else telnet_println("Discovery Error! -> HASSIO_Fail = " + String(HASSIO_Fail));
 }
 
 void hassio_delete() {
-    hassio_device();
     delete_entity("sensor", "None", "Status");
     delete_entity("sensor", "battery", "Battery");
     delete_entity("switch", "switch", "LED");

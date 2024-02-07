@@ -1,14 +1,16 @@
 // Function to insert customized HASSIO Configuration actions
+// check for entity and device_class in https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
+// NOTE! entity and device_class must be lowecased, except "None"
 
 void custo_hassio_disc(){
-//    config_entity("Switch","switch","Switch");
-//    config_entity("Sensor","none","Timer");
+//    config_entity("switch","switch","Switch");
+//    config_entity("sensor","none","Timer");
 //    config_trigger("Button_1");
 }
 
 void custo_hassio_del(){
-//    delete_entity("Switch","switch","Switch");
-//    delete_entity("Sensor","none","Timer");
+//    delete_entity("switch","switch","Switch");
+//    delete_entity("sensor","none","Timer");
 //    delete_trigger("Button_1");
 }
 
@@ -24,6 +26,8 @@ void trigger_syncme() {
 
     attributes_doc.clear();
     attributes_doc["ChipID"]                = ChipID;                               // Chip identifier
+    attributes_doc["MODELName"]             = MODELName;                            // Device model name
+    attributes_doc["Location"]              = config.Location;                      // Device location
     attributes_doc["DeviceName"]            = config.DeviceName;                    // Device friendly name
     attributes_doc["src_Param"]             = "cover";                              // Source Parameter. Tipically it's the param, but lowercased.
     attributes_doc["Component"]             = "cover";                              // using "component" instead of entity in HA automation/Script

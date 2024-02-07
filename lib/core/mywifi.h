@@ -80,11 +80,17 @@ void wifi_connect() {
                     // The RTC data was good, make a quick connection
                     if (config.DEBUG) Serial.print("Waking from DeepSleep and connecting to WiFi using RTD data and Static IP... ");
                     WiFi.begin( config.SSID, config.WiFiKey, rtcData.LastWiFiChannel, rtcData.bssid, true );
+                    #ifdef ESP32C3
+                        WiFi.setTxPower(WIFI_POWER_17dBm);
+                    #endif
                     WIFI_state = wifi_waitForConnectResult(2000);
                     if ( WIFI_state != WL_CONNECTED ) {
                         if (config.DEBUG) Serial.println(" ---ERROR!?!. Trying using config values. ");
                         if (config.DHCP) WiFi.config((uint32_t)0x0, (uint32_t)0x0, (uint32_t)0x0, (uint32_t)0x0);
                         WiFi.begin(config.SSID, config.WiFiKey);
+                        #ifdef ESP32C3
+                            WiFi.setTxPower(WIFI_POWER_17dBm);
+                        #endif
                         WIFI_state = wifi_waitForConnectResult(10000);
                     };
                 }
@@ -92,6 +98,9 @@ void wifi_connect() {
                     // The RTC data was not valid, so make a regular connection
                     if (config.DEBUG) Serial.print("NO RTD data or NOT waking from DeepSleep. Using configured WiFi values ... ");
                     WiFi.begin(config.SSID, config.WiFiKey);
+                    #ifdef ESP32C3
+                        WiFi.setTxPower(WIFI_POWER_17dBm);
+                    #endif
                     WIFI_state = wifi_waitForConnectResult(10000);
                 }
                 if ( WIFI_state == WL_CONNECTED ) {
