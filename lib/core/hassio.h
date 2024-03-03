@@ -168,7 +168,7 @@ void config_entity(String entity, String device_class, String param = "", String
             discovery_doc["icon"]         = "hass:speedometer";
         }
 
-        if(device_class == "battery" || device_class == "humidity" || device_class == "illuminance") {
+        if(device_class == "battery") {
             discovery_doc["unit_of_meas"] = "%";
             discovery_doc["val_tpl"]      = "{{ value | float }}";
         }
@@ -182,7 +182,21 @@ void config_entity(String entity, String device_class, String param = "", String
 
         if(device_class == "temperature") {
             discovery_doc["unit_of_meas"] = "°C";   // note the usage of char "°" and not "º" 
-            discovery_doc["val_tpl"]      = "{{value | float }}";
+            discovery_doc["val_tpl"]      = "{{value_json.Temperature | float }}";
+        }
+
+        if(device_class == "humidity") {
+            discovery_doc["unit_of_meas"] = "%";
+            discovery_doc["val_tpl"]      = "{{ value_json.Humidity | float }}";
+        }
+
+        if(param == "HumVelocity") {
+            discovery_doc["val_tpl"]      = "{{ value_json.HumVelocity | float }}";
+        }
+
+        if(device_class == "illuminance") {
+            discovery_doc["unit_of_meas"] = "%";
+            discovery_doc["val_tpl"]      = "{{ value_json.Illuminance | float }}";
         }
 
         if(device_class == "power") {

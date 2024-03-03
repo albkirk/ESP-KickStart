@@ -25,6 +25,7 @@ AM2320 am_val(&Wire);
 
 float Temperature = 0.0;                    // Variable
 float Humidity = 0.0;                       // Variable
+float HumVelocity = 0.0;                    // Variable
 float Lux = 0.0;                            // Variable
 float Tempe_MAX = -100.0;                   // Variable
 float Tempe_MIN = 100.0;                    // Variable

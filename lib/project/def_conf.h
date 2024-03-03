@@ -4,12 +4,12 @@
 //#define ESP8285                                         // ESP8285 chip requires reduced MEM space (ex.: remove WEB page)  
 #undef ESP8266                                          // To make sure it is not used somewhere... 
 //#undef ESP32                                            // To make sure it is not used somewhere... 
-#define ESP32C3                                           // ESP32-C3 chip has no ULP.
+//#define ESP32C3                                           // ESP32-C3 chip has no ULP.
 
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"                 // Hardware brand name
 #define MODELName           "GenBoxESP"                   // Hardware model name
-#define SWVer               "13.07"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "13.08"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- Model Variants Definition --                        // Identify variants for acomodade small code changes 
 //#define ModelVariant                                    // Ex.: MoesHouse cover, Ambisense version,... 
