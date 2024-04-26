@@ -124,7 +124,7 @@ void getNTPtime(unsigned long timeout_sync = 1000UL)
   unsigned long NTPTime = 0; // Resetting value to 0
 
   if (WIFI_state != WL_CONNECTED)
-    telnet_println("NTP ERROR! ==> NO WiFi connection!");
+    telnet_println("NTP ERROR! ==> NO Internet connection!");
   else
   {
     myconfigTime("TZ_Etc_UTC", config.NTPServerName, config.NTPServerName, config.NTPServerName);

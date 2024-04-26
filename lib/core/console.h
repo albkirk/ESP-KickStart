@@ -56,7 +56,7 @@ void telnet_stop() {
 
 
 void telnet_setup() {
-    if (WIFI_state != WL_CONNECTED) telnet_println( "Telnet ERROR! ==> NO WiFi connection!" );
+    if (WIFI_state != WL_CONNECTED) telnet_println( "Telnet ERROR! ==> NO Internet connection!" );
     else {
 		if (config.TELNET){
 	   		//start Telnet service

@@ -49,7 +49,6 @@ static const String flash_size_map_Name[] = {
     ADC_MODE(ADC_VCC)                       // Get voltage from Internal ADC
 #endif
 
-
 #ifndef ESP8285
 // Initialize the Webserver
 ESP8266WebServer MyWebServer(80);  
@@ -205,22 +204,9 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
     ESP.deepSleep( Time_minutes * 60 * 1000000);            // time in minutes converted to microseconds
 }
 
-
-float getBattLevel() {                                      // return Battery level in Percentage [0 - 100%]
-    float voltage = 0.0;                                    // Input Voltage [v]
-    for(int i = 0; i < Number_of_measures; i++) {
-        if (Using_ADC) {voltage += analogRead(A0) * Vcc;}
-        else {voltage += ESP.getVcc();}         // only later, the (final) measurement will be divided by 1000
-        delay(1);
-    };
-    voltage = voltage / Number_of_measures;
-    voltage = voltage / 1000.0 + config.LDO_Corr;
-    if (config.DEBUG) Serial.println(" Averaged and Corrected Voltage: " + String(voltage));
-    if (voltage > Batt_Max ) {
-        if (config.DEBUG) Serial.println("Voltage will be truncated to Batt_Max: " + String(Batt_Max));
-        voltage = Batt_Max;
-    }
-    return ((voltage - Batt_Min) / (Batt_Max - Batt_Min)) * 100.0;
+float ReadVoltage(){
+    if (Using_ADC) {return float((analogRead(pin) * Vcc)/1000.0);}
+    else {return float(ESP.getVcc());}         // only later, the (final) measurement will be divided by 1000
 }
 
 long getRSSI() {

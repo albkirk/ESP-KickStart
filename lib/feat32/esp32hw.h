@@ -49,9 +49,6 @@ Preferences preferences;                    // Preferences library is wrapper ar
     ADC_MODE(ADC_VCC)                       // Get voltage from Internal ADC
 #endif
 */
-#ifndef Default_ADC_PIN
-    #define Default_ADC_PIN 36
-#endif
 
 // Initialize the Webserver
 WebServer MyWebServer(80);
@@ -259,42 +256,12 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
 }
 
 
-double ReadVoltage(byte pin){
-  double reading = analogRead(pin); // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
+double ReadVoltage(){
+  double reading = analogRead(Batt_ADC_PIN); // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
   if(reading < 1 || reading > 4095) return -1;
   //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
   return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
 } // Added an improved polynomial, use either, comment out as required
-
-
-float getBattLevel() {                                      // return Battery level in Percentage [0 - 100%]
-#ifdef IP5306
-    float tempval;
-    float value = -2;
-    for(int i = 0; i < Number_of_measures; i++) {
-        tempval = float(getBatteryLevel());
-        if (tempval > value) value = tempval;
-        delay(10);
-    }
-    return value;
-#else
-    float voltage = 0.0;                                    // Input Voltage [v]
-    for(int i = 0; i < Number_of_measures; i++) {
-        voltage += ReadVoltage(Default_ADC_PIN);
-        delay(1);
-    }
-    voltage = voltage / Number_of_measures;
-    voltage = (voltage * 2) + config.LDO_Corr;              // "* 2" multiplier required when using a 50K + 50K Resistor divider between VCC and ADC. 
-    if (config.DEBUG) Serial.println("Averaged and Corrected Voltage: " + String(voltage));
-    /*
-    if (voltage > Batt_Max ) {
-        if (config.DEBUG) Serial.println("Voltage will be truncated to Batt_Max: " + String(Batt_Max));
-        voltage = Batt_Max;
-    }
-    */
-    return ((voltage - Batt_Min) / (Batt_Max - Batt_Min)) * 100.0;
-#endif
-}
 
 long getRSSI() {
     // return WiFi RSSI Strength signal [dBm]
@@ -371,9 +338,9 @@ void hw_setup() {
 
 
   // ADC setup
-    analogSetPinAttenuation(Default_ADC_PIN,ADC_11db);   // ADC_11db provides an attenuation so that IN/OUT = 1 / 3.6.
+    analogSetPinAttenuation(Batt_ADC_PIN,ADC_11db);   // ADC_11db provides an attenuation so that IN/OUT = 1 / 3.6.
                                                          // An input of 3 volts is reduced to 0.833 volts before ADC measurement
-    adcAttachPin(Default_ADC_PIN);                       // S_VP  -- GPIO36, ADC_PRE_AMP, ADC1_CH0, RTC_GPIO0
+    adcAttachPin(Batt_ADC_PIN);                       // S_VP  -- GPIO36, ADC_PRE_AMP, ADC1_CH0, RTC_GPIO0
 
   // Disable BT (most of project won't use it) to save battery.
   //  esp_bt_controller_disable();

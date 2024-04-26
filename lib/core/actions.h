@@ -74,6 +74,7 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "Reset") if (bool(cmd_value.toInt()) == true) {mqtt_publish(mqtt_pathcomd, "Reset", "", true); hassio_delete(); global_reset();}
     if ( command == "Format") if (bool(cmd_value.toInt()) == true) FormatConfig();
     if ( command == "Version") {mqtt_publish(mqtt_pathtele, "Version", String(SWVer)); telnet_println("Version: " + String(SWVer));}
+    if ( command == "Exit") {telnet_println("Closing session..."); telnetClient.stop();}
     if ( command == "HASSIO") if (bool(cmd_value.toInt()) == true) {
             mqtt_publish(mqtt_pathcomd, "HASSIO", "", true);
             hassio_delete();
@@ -122,10 +123,13 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
         //mqtt_publish(mqtt_pathtele, "NTP_Sync", String(NTP_Sync));
         if (BattPowered) { telnet_print("Power: BATT", true); telnet_print("  -  Level: " + String(getBattLevel(),0), true); }
         else { telnet_print("Power: MAINS", true); }
-        //telnet_print("  -  SW Ver: " + String(SWVer), true);
-        //if (WIFI_state == WL_CONNECTED) telnet_print("  -  IP: " + WiFi.localIP().toString(), true);
+        /*if (WIFI_state == WL_CONNECTED) {
+            telnet_print("  -  RSSI: " + String(getRSSI()) + " dBm");
+            telnet_print("  -  IP: " + WiFi.localIP().toString());
+        }*/
+        telnet_print("  -  SW Ver: " + String(SWVer), true);
         telnet_print("  -  Uptime: " + String(millis()/1000), true);
-        telnet_print("  -  Current Date/Time: " + curDateTime(), true);
+        telnet_print("  -  " + curDateTime(), true);     //"  -  Current Date/Time: "
         telnet_println("  -  NTP Sync: " + String(NTP_Sync), true);
         #ifdef ESP8266
             telnet_println("Flash: " + Flash_Size() + "  -  CPU Clock: " + String(CPU_Clock()) + " MHz  -  WiFi State: " + WIFI_state_Name[WIFI_state] + " - Phy Mode: " + WIFI_PHY_Mode_Name[WiFi.getPhyMode()] + "  -  MQTT State: " + MQTT_state_string(), true);

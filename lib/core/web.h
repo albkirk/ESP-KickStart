@@ -136,9 +136,12 @@ void web_setup() {
     MyWebServer.on ( "/style.css", []() { MyWebServer.send ( 200, "text/plain", PAGE_Style_css );  } );
     MyWebServer.on ( "/microajax.js", []() { MyWebServer.send ( 200, "text/plain", PAGE_microajax_js );  } );
     MyWebServer.onNotFound ( []() { MyWebServer.send ( 400, "text/html", "Page not Found" );   }  );
-    MyWebServer.begin();
-    Extend_time = 900;
-    telnet_println("My Web server has started for " + String(Extend_time/60) + " minutes");
+    if (WIFI_state != WL_RADIO_OFF) {
+        MyWebServer.begin();
+        Extend_time = 900;
+        telnet_println("My Web server has started for " + String(Extend_time/60) + " minutes");
+    }
+    else telnet_println("Web server NOT started -> Radio is OFF.");
   }
   else {
     MyWebServer.close();

@@ -19,6 +19,8 @@ unsigned long TIMER = 0;                    // [0-7200]  Minutes
 unsigned long TIMER_Last = 0;               // [0-7200]  Minutes                 
 static long TIMER_Current = 0;
 unsigned long COUNTER = 0;
+float Batt_Level = 0;
+float Batt_Last  = 0;
 
 
 void blink_LED(unsigned int slot, int bl_LED = LED_ESP, bool LED_OFF = !config.LED) { // slot range 1 to 10 =>> 3000/300
@@ -65,8 +67,36 @@ void deepsleep_loop() {
     }
 }
 
+float getBattLevel() {                                      // return Battery level in Percentage [0 - 100%]
+#ifdef IP5306
+    float tempval;
+    float value = -2;
+    for(int i = 0; i < Number_of_measures; i++) {
+        tempval = float(getBatteryLevel());
+        if (tempval > value) value = tempval;
+        delay(10);
+    }
+    return value;
+#else
+    float voltage = 0.0;                                    // Input Voltage [v]
+    for(int i = 0; i < Number_of_measures; i++) {
+        voltage += ReadVoltage();
+        delay(1);
+    }
+    voltage = voltage / Number_of_measures + config.LDO_Corr; 
+    if (config.DEBUG) telnet_println("Averaged and Corrected Voltage: " + String(voltage));
+    /*
+    if (voltage > Batt_Max ) {
+        if (config.DEBUG) Serial.println("Voltage will be truncated to Batt_Max: " + String(Batt_Max));
+        voltage = Batt_Max;
+    }
+    */
+    return ((voltage - Batt_Min) / (Batt_Max - Batt_Min)) * 100.0;
+#endif
+}
+
 float Batt_OK_check() {                     // If LOW Batt, it will DeepSleep forever!
-    float Batt_Level = getBattLevel();      // Check Battery Level
+    Batt_Level = getBattLevel();      // Check Battery Level
     if (Batt_Level < Batt_L_Thrs && Batt_Level >= 0) {
         mqtt_publish(mqtt_pathtele, "Status", "LOW Battery");
         mqtt_publish(mqtt_pathtele, "Battery", String(Batt_Level,0));

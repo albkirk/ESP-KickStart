@@ -40,8 +40,9 @@ void send_attributes(String param) {
 
 void send_status_attributes(String param) {
     attributes_doc.clear();
-    //attributes_doc["SWVer"]             = SWVer;                                // Software Version
-    attributes_doc["CPUClock"]          = CPU_Clock();                          // CPU Clock
+    attributes_doc["SWVer"]             = SWVer;                                // Software Version
+    //attributes_doc["ChipID"]            = ChipID;                               // Chip ID
+    //attributes_doc["CPUClock"]          = CPU_Clock();                          // CPU Clock
     attributes_doc["Boot"]              = ESPWakeUpReason();                    // Boot Reason
     if (WIFI_state == WL_CONNECTED) attributes_doc["IP"] = WiFi.localIP().toString(); // WiFi IP address
     #ifdef Modem_WEB_TELNET

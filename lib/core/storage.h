@@ -21,6 +21,8 @@ struct strDateTime                          // Date & Time Struture for usage on
   byte month;
   byte day;
   byte wday;
+  bool alarm;
+  byte sound;
 };
 #endif
 

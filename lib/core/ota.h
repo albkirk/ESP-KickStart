@@ -47,8 +47,11 @@
             ESPRestart();
         });
 
-        ArduinoOTA.begin();
-      telnet_println("Ready for OTA");
+      if (WIFI_state != WL_RADIO_OFF) {
+          ArduinoOTA.begin();
+          telnet_println("Ready for OTA");
+      }
+      else telnet_println("OTA NOT started -> Radio is OFF.");
     }
     else yield();
   }
