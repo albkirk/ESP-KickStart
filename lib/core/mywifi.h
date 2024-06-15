@@ -44,6 +44,11 @@ String WIFI_state_string(int wifistate = WIFI_state) {
     return WIFI_state_Name[wifistate];
 }
 
+void wifi_hostname() {
+    String host_name = String(config.DeviceName + String("-") + config.Location);
+    WiFi.hostname(host_name.c_str());
+}
+
 void wifi_disconnect() {
     esp_wifi_disconnect();
     WIFI_state = WL_RADIO_OFF;
@@ -52,6 +57,9 @@ void wifi_disconnect() {
 void wifi_connect() {
     // Radio OFF?
     if(WIFI_state != WL_RADIO_OFF) {
+        wifi_hostname();            // must be executed before WiFi.begin(), WiFi.softAP(), WiFi.mode(),
+                                    // or WiFi.run().
+                                    // To change the name, reset WiFi with WiFi.mode(WIFI_MODE_NULL).
         //  Connect to Local wireless network or start as Access Point
         if ( WiFi.status() != WL_CONNECTED) {
             if (config.APMode) {
@@ -68,7 +76,6 @@ void wifi_connect() {
             if (config.STAMode) {
                 // Handle DHCP, IP address and hostname for the shield
                 if (  !config.DHCP || ( RTC_read() && (ESPWakeUpReason() == "Deep-Sleep Wake") )  ) {
-                //if (!config.DHCP) {
                     WiFi.persistent(true);                   // required for fast WiFi registration
                     // Static IP (No DHCP) may be handy for fast WiFi registration
                     IPAddress StaticIP(config.IP[0], config.IP[1], config.IP[2], config.IP[3]);
@@ -77,13 +84,9 @@ void wifi_connect() {
                     IPAddress DNS(config.DNS_IP[0], config.DNS_IP[1], config.DNS_IP[2], config.DNS_IP[3]);
                     WiFi.config(StaticIP, Gateway, Subnet, DNS);
                 };
-                wifi_hostname();
                 if( RTC_read() && (ESPWakeUpReason() == "Deep-Sleep Wake") ) {
                     // The RTC data was good, make a quick connection
                     if (config.DEBUG) Serial.print("Waking from DeepSleep and connecting to WiFi using RTD data and Static IP... ");
-                    //#ifdef ESP32C3
-                    //    WiFi.setTxPower(My_WIFI_POWER);
-                    //#endif
                     WiFi.begin( config.SSID, config.WiFiKey, rtcData.LastWiFiChannel, rtcData.bssid, true );
                     WIFI_state = wifi_waitForConnectResult(2000);
                     if ( WIFI_state != WL_CONNECTED ) {
@@ -96,12 +99,12 @@ void wifi_connect() {
                 else {
                     // The RTC data was not valid, so make a regular connection
                     if (config.DEBUG) Serial.print("NO RTD data or NOT waking from DeepSleep. Using configured WiFi values ... ");
-                    //#ifdef ESP32C3
-                    //    WiFi.setTxPower(My_WIFI_POWER);
-                    //#endif
+                    if (config.DHCP) WiFi.config((uint32_t)0x0, (uint32_t)0x0, (uint32_t)0x0, (uint32_t)0x0);
+                    wifi_hostname();                // must be executed after WiFi.config() and before WiFi.begin()
                     WiFi.begin(config.SSID, config.WiFiKey);
                     WIFI_state = wifi_waitForConnectResult(10000);
                 }
+
                 if ( WIFI_state == WL_CONNECTED ) {
                     if (config.DEBUG) { Serial.print("Connected to WiFi network! " + String(config.SSID) + " IP: "); Serial.println(WiFi.localIP());}
                     // state_update();      // relying on MQTT_connect() to execute this functions.
@@ -114,9 +117,6 @@ void wifi_connect() {
                 else if (config.DEBUG) Serial.println( "WiFI ERROR! ==> " + WIFI_state_string(WIFI_state) );
             }
             if (config.APMode) {
-                //#ifdef ESP32C3
-                //    WiFi.setTxPower(My_WIFI_POWER);
-                //#endif
                 WiFi.softAP(ESP_SSID.c_str());
                 //WiFi.softAP(config.SSID);
                 if (config.DEBUG) { Serial.print("WiFi in AP mode, with IP: "); Serial.println(WiFi.softAPIP());}

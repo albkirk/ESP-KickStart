@@ -9,18 +9,18 @@
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"                 // Hardware brand name
 #define MODELName           "GenBoxESP"                   // Hardware model name
-#define SWVer               "13.09"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "13.12"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- Model Variants Definition --                        // Identify variants for acomodade small code changes 
 //#define ModelVariant                                    // Ex.: MoesHouse cover, Ambisense version,... 
 
-// -- GPIO to Function Assignment --
+// -- DIGITAL GPIO to Function Assignment --
 #define LED_ESP              8                            // 8266=2, ESP32=22, ESP32C3=8, T-Call=13, TTGoTS=22, T5=19, -1 means NOT used!
 #define IR_PIN              -1                            // IR-LED Receiver PIN  -1 means NOT used!
 #define BUZZER              -1                            // (Active) Buzzer pin. Suggest to use pin 0. -1 means NOT used!
 #define Ext1WakeUP          -1                            // External Wake Up pin. (connected to GND, with Parallel Cap).  -1 means NOT used!
 #define Reset_Btn           -1                            // Reset button to return to default configuration. -1 means NOT used! 
-#define BUT_A               -1                            // Button A INPUT pin (used in buttons.h) TTGoTS=35, T5=39, TTGo T7=0
+#define BUT_A                9                            // Button A INPUT pin (used in buttons.h) TTGoTS=35, T5=39, TTGo T7=0
 #define BUT_B               -1                            // Button B INPUT pin (used in buttons.h) TTGoTS=34,
 #define BUT_C               -1                            // Button C INPUT pin (used in buttons.h) TTGoTS=39,
 #define T_Left              -1                            // Touch button Left  pin. TTGoTS=T7, T5=-1, -1 means NOT used!
@@ -38,15 +38,15 @@
 #define NEOPixelsPIN        -1                            // GPIO pin where the NeoPixels is connected.
 #define NEOPixelsNUM        -1                            // Number of NeoPixels LEDs attached
 
-
 // -- Power Source & Battery Level --
-bool BattPowered =       false;                           // Is the device battery powered?
+bool BattPowered =       true;                            // Is the device battery powered?
+#define Res_Div           true                            // Do you have a Resistor divider (ence needs to multiply by 2)?
 #define Batt_L_Thrs         15                            // Battery level threshold [0%-100%] (before slepping forever).
-#define Using_ADC        false                            // ESP8266 only. Will you use the ADC? (if not, it will measure the internal voltage)
+#define Using_ADC         true                            // ESP8266 only. Will you use the ADC? (if not, it will measure the internal voltage)
 //#define IP5306                                          // Power Management chip. TTGo T-Call module uses this.
 
 // -- ADC GPIO & (ESP32 Only)
-#define Batt_ADC_PIN         5                            // IO pin for Battery ADC measurement. Default->36,  TFT->36, EPaper->35, ESP32-C3->5
+#define Batt_ADC_PIN        -1                            // IO pin for Battery ADC measurement. Default->36,  TFT->36, EPaper->35
 #define NTC_ADC_PIN         -1                            // IO pin for NTC ADC measurement. Default->36,  TFT->36, EPaper->35
 #define LUX_ADC_PIN         -1                            // IO pin for LUX ADC measurement. Default->36,  TFT->36, EPaper->35
 
@@ -103,7 +103,7 @@ void config_defaults() {
     strcpy(config.ClientID, "001001");                    // Client ID (used on MQTT)
     config.ONTime = 10;                                   // 0-255 seconds (Byte range)
     config.SLEEPTime = 0;                                 // 0-255 minutes (Byte range)
-    config.DEEPSLEEP = false;                             // 0 - Disabled, 1 - Enabled
+    config.DEEPSLEEP = true;                              // 0 - Disabled, 1 - Enabled
     config.LED = true;                                    // 0 - OFF, 1 - ON
     config.TELNET = true;                                 // 0 - Disabled, 1 - Enabled
     config.OTA = true;                                    // 0 - Disabled, 1 - Enabled

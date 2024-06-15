@@ -78,25 +78,30 @@ float getBattLevel() {                                      // return Battery le
     }
     return value;
 #else
-    float voltage = 0.0;                                    // Input Voltage [v]
-    for(int i = 0; i < Number_of_measures; i++) {
-        voltage += ReadVoltage();
-        delay(1);
+    if (Batt_ADC_PIN<0) return -1;
+    else {
+        float voltage = 0.0;                                    // Input Voltage [v]
+    
+        for(int i = 0; i < Number_of_measures; i++) {
+            if(Res_Div) voltage += ReadVoltage() * 2;
+            else voltage += ReadVoltage();
+            delay(1);
+        }
+        voltage = voltage / Number_of_measures + config.LDO_Corr; 
+        if (config.DEBUG) telnet_println("Averaged and Corrected Voltage: " + String(voltage));
+        /*
+        if (voltage > Batt_Max ) {
+            if (config.DEBUG) Serial.println("Voltage will be truncated to Batt_Max: " + String(Batt_Max));
+            voltage = Batt_Max;
+        }
+        */
+        return ((voltage - Batt_Min) / (Batt_Max - Batt_Min)) * 100.0;
     }
-    voltage = voltage / Number_of_measures + config.LDO_Corr; 
-    if (config.DEBUG) telnet_println("Averaged and Corrected Voltage: " + String(voltage));
-    /*
-    if (voltage > Batt_Max ) {
-        if (config.DEBUG) Serial.println("Voltage will be truncated to Batt_Max: " + String(Batt_Max));
-        voltage = Batt_Max;
-    }
-    */
-    return ((voltage - Batt_Min) / (Batt_Max - Batt_Min)) * 100.0;
 #endif
 }
 
-float Batt_OK_check() {                     // If LOW Batt, it will DeepSleep forever!
-    Batt_Level = getBattLevel();      // Check Battery Level
+void Batt_OK_check() {                      // If LOW Batt, it will DeepSleep forever!
+    Batt_Level = getBattLevel();            // Check Battery Level
     if (Batt_Level < Batt_L_Thrs && Batt_Level >= 0) {
         mqtt_publish(mqtt_pathtele, "Status", "LOW Battery");
         mqtt_publish(mqtt_pathtele, "Battery", String(Batt_Level,0));
@@ -107,20 +112,23 @@ float Batt_OK_check() {                     // If LOW Batt, it will DeepSleep fo
         //#endif
         flash_LED(10);
         delay(100);
-        GoingToSleep(0, curUnixTime());   // Sleep forever
-        return Batt_Level;                // Actually, it will never return !!
+        GoingToSleep(0, curUnixTime());     // Sleep forever
+        return;                             // Actually, it will never return !!
     }
-    return Batt_Level;
+    else return;                            // Batt OK, returning null
 }
 
 void status_report() {
     if (BattPowered) {
-        float Battery = Batt_OK_check();
-        if (Battery >100) mqtt_publish(mqtt_pathtele, "Status", "Charging");
+        Batt_OK_check();                    // Update Battery Level and sleeps If LOW Batt.
+        if (Batt_Level >100) {
+            mqtt_publish(mqtt_pathtele, "Status", "Charging");
+            mqtt_publish(mqtt_pathtele, "Battery", "100");
+        }
         else {
             mqtt_publish(mqtt_pathtele, "Status", "Battery");
-            if (Battery >=0) mqtt_publish(mqtt_pathtele, "Battery", String(Battery,0));
-        }
+            if (Batt_Level >=0) mqtt_publish(mqtt_pathtele, "Battery", String(Batt_Level,0));
+        };
     }
     else mqtt_publish(mqtt_pathtele, "Status", "Mains");
 }

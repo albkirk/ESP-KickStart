@@ -16,15 +16,25 @@ Change Light brightness by changing the value of: GAIN
 
 */
 
-//#include <FastLED.h>
-//#include <NeoPixelBus.h>
 #ifdef LED_NEO
     #include <Adafruit_NeoPixel.h>
+    //#include <FastLED.h>
+    //#include <NeoPixelBus.h>
 #endif
 
 // CONSTANTs
-    #define PWM_RANGE 255                   // Duty cycle value 255 equalto FF
-    #define PWM_FREQ 250                    // PWM Frequency
+#ifndef LED_NEO
+    #ifdef ESP32
+        #define RESOLUTION           8          // Duty cycle bits (8 -> 255) equalto FF
+        #define PWM_FREQ          1000          // PWM Frequency
+        #define CHANNELR             0
+        #define CHANNELG             1
+        #define CHANNELB             2
+    #else   // is ESP8266
+        #define PWM_RANGE 255                   // Duty cycle value 255 equalto FF
+        #define PWM_FREQ 250                    // PWM Frequency
+    #endif
+#endif
 
     char BLACK[8] =        "#000000";       // RGB code for BLACK or LED Strip OFF
     char WHITE[8] =        "#FFFFFF";       // RGB code for WHITE
@@ -65,17 +75,21 @@ Change Light brightness by changing the value of: GAIN
     char *Xarr;
     long RANGE[] = {15, 31, 47, 63, 79, 95, 111, 127, 143, 159, 175, 191, 207, 223, 239, 255};
     byte GAIN = 255;                // Color gain 0 to 255
+    bool Light = false;             // [OFF / ON] Light switch
+    bool Light_Last = true;         // [OFF / ON] Light switch  (Last state)
 // EFX
-    const String EFXName[] = {"NoEFX", "Auto", "Flash", "Fade3", "Fade7", "Jump3", "Jump7", "Raibow", "Scan"};
+    const String EFXName[] = {"NoEFX", "Auto", "Flash", "Fade3", "Fade7", "Scan", "Rainbow"};
+    byte sizeof_EFXName = 7;        // The number of EFX in the list (must be manually counted)
     byte EFX = 0;                   // The EFX to be played
+    byte EFX_Last = 255;            // The Last EFX to be played
     byte EFX_RGB[3] = {0, 0, 0};    // Effects RGB trio byte values used during Effects
-    int  EFX_idx=0;                 // RGB array index
+    int  RGB_idx=0;                 // RGB array index
     long EFX_Delta=-2;              // RGB delta value change (-2 or +2)
     byte EFX_GAIN = 255;            // Effect Color gain 0 to 255
     uint EFX_Interval=1500;         // Effect interval timer in milliseconds
     byte GAIN_Last = 0;             // Last GAIN value
-    uint EFX_Last=0;                // last time Effect status was changed
-    uint Flash_Last=0;              // last time Flash status was changed
+    uint Last_T_EFX=0;              // last time Effect status was changed
+    uint Last_T_Flash=0;            // last time Flash status was changed
     bool Bool_flash=false;          // Boolean to toggle flash status
     byte RainBow_idx = 0;           // Raibow color index
 
@@ -121,6 +135,15 @@ bool barraycpy (byte *arrout, byte *arrin) {
   return true;
 }
 
+byte EFX_index(String efxname) {
+    //this functions return the index position which the input string matches to the EFXName string array
+    for (byte i = 0; i < sizeof_EFXName; i++) {
+        if (efxname == EFXName[i]) {
+            return i;
+        }
+    }
+    return 0; // Return 0 if no match found
+}
 
 byte color_gain (byte Cval, byte Gval) {
    return (byte) (Cval * Gval/255.0);
@@ -176,10 +199,15 @@ void HARGB_to_color(String RGBstring, char color_code[8] = Color){       // conv
 
 void color_paint (byte PAINT[3], byte PGain = GAIN, byte nID = 0) {  // byte PGain = GAIN || 255
 #ifndef LED_NEO
-  // analogwrite() NOT supported on ESP32?!
-  analogWrite(PIN_RED,   color_gain(PAINT[0], PGain));      // OUTPUT RED level
-  analogWrite(PIN_GREEN, color_gain(PAINT[1], (byte)(PGain*CALIBRATE)));      // OUTPUT GREEN level
-  analogWrite(PIN_BLUE,  color_gain(PAINT[2], PGain));      // OUTPUT BLUE level
+    #ifdef ESP32
+        ledcWrite(CHANNELR, color_gain(PAINT[0], PGain));                     // OUTPUT RED level
+        ledcWrite(CHANNELG, color_gain(PAINT[1], (byte)(PGain*CALIBRATE)));   // OUTPUT GREEN level
+        ledcWrite(CHANNELB, color_gain(PAINT[2], (byte)(PGain*CALIBRATE)));   // OUTPUT BLUE level
+    #else   //is ESP8266
+        analogWrite(PIN_RED,   color_gain(PAINT[0], PGain));                  // OUTPUT RED level
+        analogWrite(PIN_GREEN, color_gain(PAINT[1], (byte)(PGain*CALIBRATE)));// OUTPUT GREEN level
+        analogWrite(PIN_BLUE,  color_gain(PAINT[2], (byte)(PGain*CALIBRATE)));// OUTPUT BLUE level
+    #endif
 #else
   pixels.setPixelColor(nID, pixels.Color(color_gain(PAINT[0], PGain), color_gain(PAINT[1], PGain), color_gain(PAINT[2], PGain))); // Moderately bright green color.
   //pixels.SetPixelColor(nID, RgbColor(color_gain(PAINT[0], PGain), color_gain(PAINT[1], PGain), color_gain(PAINT[2], PGain))); // Moderately bright green color.
@@ -208,19 +236,19 @@ bool color_set (char color_code[8], byte nID = 0) {
 
 // Color Effect functions
 void color_Auto() {
-    if ( millis() - EFX_Last > EFX_Interval/10) {
+    if ( millis() - Last_T_EFX > EFX_Interval/10) {
       int idx = random(0,3);
-      int deviate = random(-5,6);
+      int deviate = random(-25,25);
       if (EFX_RGB[idx] + deviate >=0 && EFX_RGB[idx] + deviate <=255) {
           EFX_RGB[idx] += deviate ;
           color_paint(EFX_RGB, EFX_GAIN);
       }
-      EFX_Last = millis();
+      Last_T_EFX = millis();
     }
 }
 
 void color_Flash() {
-    if ( millis() - Flash_Last > EFX_Interval/4) {
+    if ( millis() - Last_T_Flash > EFX_Interval/4) {
         if (Bool_flash) {
             EFX_GAIN = 0;
             color_paint(EFX_RGB, EFX_GAIN);
@@ -230,56 +258,56 @@ void color_Flash() {
             color_paint(EFX_RGB, EFX_GAIN);
         }
         Bool_flash = !Bool_flash;
-        Flash_Last = millis();
+        Last_T_Flash = millis();
     }
 }
 
 void color_Fade3() {
-    if ( millis() - EFX_Last > EFX_Interval/20) {
-      if (EFX_RGB[EFX_idx] + EFX_Delta >=0 && EFX_RGB[EFX_idx] + EFX_Delta <=RGB[EFX_idx]) {
-          EFX_RGB[EFX_idx] += EFX_Delta;
+    if ( millis() - Last_T_EFX > EFX_Interval/20) {
+      if (EFX_RGB[RGB_idx] + EFX_Delta >=0 && EFX_RGB[RGB_idx] + EFX_Delta <=RGB[RGB_idx]) {
+          EFX_RGB[RGB_idx] += EFX_Delta;
           color_paint(EFX_RGB, EFX_GAIN);
       }
       else {
-        if (EFX_Delta <0) EFX_idx = (EFX_idx +1) % 3;
+        if (EFX_Delta <0) RGB_idx = (RGB_idx +1) % 3;
         EFX_Delta = - EFX_Delta;
       }
-      EFX_Last = millis();
+      Last_T_EFX = millis();
     }
 }
 
 void color_Fade7() {
-    if ( millis() - EFX_Last > EFX_Interval/20) {
-      if (EFX_RGB[EFX_idx] + EFX_Delta >=0 && EFX_RGB[EFX_idx] + EFX_Delta <=RGB[EFX_idx]) {
-          EFX_RGB[EFX_idx] += EFX_Delta;
+    if ( millis() - Last_T_EFX > EFX_Interval/20) {
+      if (EFX_RGB[RGB_idx] + EFX_Delta >=0 && EFX_RGB[RGB_idx] + EFX_Delta <=RGB[RGB_idx]) {
+          EFX_RGB[RGB_idx] += EFX_Delta;
           color_paint(EFX_RGB, EFX_GAIN);
       }
       else {
-        EFX_idx = (EFX_idx +1) % 3;
+        RGB_idx = (RGB_idx +1) % 3;
         EFX_Delta = - EFX_Delta;
       }
-      EFX_Last = millis();
+      Last_T_EFX = millis();
     }
 }
 
 void color_rainbow() {
-    if ( millis() - EFX_Last > EFX_Interval/20) {
+    if ( millis() - Last_T_EFX > EFX_Interval/20) {
       color_set(rainbow[RainBow_idx], neoID);
       color_set(rainbow[RainBow_idx], neoID+1);
       //Serial.println("Color" + String(rainbow[RainBow_idx]) + "  NEO: " + neoID);
       RainBow_idx = (RainBow_idx + 1) % (sizeof(rainbow)/sizeof(*rainbow));
       neoID  = (neoID + 2)% NEOPixelsNUM;
-      EFX_Last = millis();
+      Last_T_EFX = millis();
     }
 }
 
 void color_scan() {
-    if ( millis() - EFX_Last > EFX_Interval/20) {
+    if ( millis() - Last_T_EFX > EFX_Interval/20) {
       color_set(BLACK, neoID);
       RainBow_idx = (RainBow_idx + 1) % (sizeof(rainbow)/sizeof(*rainbow));
       neoID  = (neoID + 1) % NEOPixelsNUM;
       color_set( rainbow[RainBow_idx], neoID);
-      EFX_Last = millis();
+      Last_T_EFX = millis();
     }
 }
 
@@ -288,18 +316,32 @@ void color_scan() {
 //
 void color_setup() {
     // ***********  Color SETUP
- #ifndef LED_NEO
-    pinMode(PIN_RED,   OUTPUT);
-    pinMode(PIN_GREEN, OUTPUT);
-    pinMode(PIN_BLUE,  OUTPUT);
-    analogWriteRange(PWM_RANGE);        // Duty cycle Range of values [o-PWMRANGE] equal to FF
-    analogWriteFreq(PWM_FREQ);          // PWM Frequency 250Hz
+#ifndef LED_NEO
+    #ifdef ESP32
+        ledcSetup(CHANNELR, PWM_FREQ, RESOLUTION);  // Duty cycle Range of values [o-PWMRANGE] equal to FF
+        ledcSetup(CHANNELG, PWM_FREQ, RESOLUTION);  // PWM Frequency 1000Hz
+        ledcSetup(CHANNELB, PWM_FREQ, RESOLUTION);
+        // attach the channel to the GPIO to be controlled
+        ledcAttachPin(PIN_RED, CHANNELR);
+        ledcAttachPin(PIN_GREEN, CHANNELG);
+        ledcAttachPin(PIN_BLUE, CHANNELB);
+    #else  // is 8266
+        pinMode(PIN_RED,   OUTPUT);
+        pinMode(PIN_GREEN, OUTPUT);
+        pinMode(PIN_BLUE,  OUTPUT);
+        analogWriteRange(PWM_RANGE);    // Duty cycle Range of values [o-PWMRANGE] equal to FF
+        analogWriteFreq(PWM_FREQ);      // PWM Frequency 250Hz
+    #endif
     color_set(BLACK);                   // Initiate LED Strip turned off
     delay(200);
-    strcpy(Color,config.InitColor);     // for faster control of RGB, independent of WiFI/MQTT/system status
-    color_set(Color);                   // Turning LED Strip to initial color (typicaly white...)
-    strcpy(LastColor,BLACK);            // and force publishing initial color after Wifi and MQQT initialization
-    strcpy(LastNBlack,config.InitColor);// Setup the initial color for the Light/Switch command
+    if (config.SWITCH_Default) {
+        strcpy(Color,config.InitColor);     // for faster control of RGB, independent of WiFI/MQTT/system status
+        Light = true;                       // Turning LED Strip to ON
+        Light_Last = false;                 // and force publishing initial Light State
+        color_set(Color);                   // Turning LED Strip to initial color (typicaly white...)
+        strcpy(LastColor,BLACK);            // and force publishing initial color after Wifi and MQQT initialization
+        strcpy(LastNBlack,config.InitColor);// Setup the initial color for the Light/Switch command
+    }
 #else
     // Set NeoPixel configuration
     //pixels.SetBrightness(BRIGHTNESS);
@@ -313,10 +355,10 @@ void color_setup() {
 void color_loop() {
     if (String(Color) != String(LastColor)) {
         if (String(Color) != String(BLACK)) {
-            SWITCH = true;
+            Light = true;
             strcpy(LastNBlack,Color);
         }
-        else SWITCH = false;
+        else Light = false;
         if (color_set(Color)) mqtt_publish(mqtt_pathtele, "Color", String(Color));
         strcpy(LastColor,Color);
     }
@@ -324,11 +366,16 @@ void color_loop() {
         if (color_set(Color)) mqtt_publish(mqtt_pathtele, "Gain", String(GAIN));
         GAIN_Last = GAIN;
     }
-    if (SWITCH != SWITCH_Last) {
-        if (SWITCH) { EFX = 0; strcpy(Color,LastNBlack); }
+    if (Light != Light_Last) {
+        if (Light) { EFX = 0; strcpy(Color,LastNBlack); }
         else { EFX = 0; strcpy(Color,BLACK); }
-        mqtt_publish(mqtt_pathtele, "Light", String(SWITCH));
-        SWITCH_Last = SWITCH;
+        mqtt_publish(mqtt_pathtele, "Light", String(Light));
+        //mqtt_publish(mqtt_pathtele, "Gain", String(GAIN));
+        Light_Last = Light;
+    }
+    if (EFX != EFX_Last) {
+         mqtt_publish(mqtt_pathtele, "EFX", EFXName[EFX]);
+         EFX_Last = EFX;
     }
     switch (EFX) {
         case 0:
@@ -353,18 +400,18 @@ void color_loop() {
             color_Fade7();
             break;
         case 5:
+            color_rainbow();
+            break;
+        case 6:
+            color_scan();
+            break;
+        case 7:
             color_Fade3();
             color_Flash();
             break;
-        case 6:
+        case 8:
             color_Fade7();
             color_Flash();
-            break;
-        case 7:
-            color_rainbow();
-            break;
-        case 8:
-            color_scan();
             break;
         default:
             EFX = 0;

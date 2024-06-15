@@ -134,11 +134,6 @@ void esp_wifi_disconnect() {
     WiFi.mode(WIFI_OFF);
 }
 
-void wifi_hostname() {
-    String host_name = String(config.DeviceName + String("-") + config.Location);
-    WiFi.hostname(host_name.c_str());
-}
-
 uint8_t wifi_waitForConnectResult(unsigned long timeout) {
     return WiFi.waitForConnectResult(timeout);
 }

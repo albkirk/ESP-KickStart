@@ -1,5 +1,5 @@
 // MQTT Constants
-#define MQTT_new_MAX_PACKET_SIZE 640                // Default: 256 bytes
+#define MQTT_new_MAX_PACKET_SIZE 768                // Default: 256 bytes
 #define MQTT_new_KEEPALIVE 60                       // Default: 15 seconds
 #define MQTT_new_SOCKET_TIMEOUT 5                   // Default: 15 seconds
 #include <PubSubClient.h>

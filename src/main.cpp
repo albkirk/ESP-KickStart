@@ -72,14 +72,14 @@ void setup() {
   // Start TELNET console service
       telnet_setup();
 
-  // Start NTP service
-      ntp_setup();
-
  // Start MQTT service
       mqtt_setup();
 
   // Start OTA service
       ota_setup();
+
+  // Start NTP service
+      ntp_setup();
 
 #ifndef ESP8285
   // Start ESP Web Service
@@ -114,14 +114,14 @@ void loop() {
   // TELNET handling
       if (config.TELNET) telnet_loop();
 
-  // NTP handling
-      ntp_loop();
-
   // MQTT handling
       mqtt_loop();
 
   // OTA request handling
       if (config.OTA) ota_loop();
+
+  // NTP handling
+      ntp_loop();
 
 #ifndef ESP8285
   // ESP Web Server requests handling

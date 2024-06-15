@@ -1,19 +1,20 @@
 // Declare and define here all sensors and actuators used in this project
 // **** Project code definition here ...
-//#include <buttons.h>
+#include <buttons.h>
 //#include <touch.h>
 //#include <ambient.h>
 //#include <mygps.h>
 
-
+// **** Project code functions here ...
 void peripherals_setup() {
- // Output GPIOs
+// Output GPIOs
  
 
+// Input GPIOs
 
- // Input GPIOs
 
-   //buttons_setup();
+// Setup functions
+   buttons_setup();
    //touch_setup();
 /*
    // Avoid full setup cycle if Humidity didn't changed since last read.

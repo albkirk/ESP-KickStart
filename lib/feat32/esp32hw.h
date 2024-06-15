@@ -139,13 +139,6 @@ void esp_wifi_disconnect() {
     WiFi.mode(WIFI_MODE_NULL);
 }
 
-void wifi_hostname() {
-    static char my_hostname[32] = {0,};
-    String host_name = String(config.DeviceName) + String("-") + String(config.Location);
-    snprintf(my_hostname, 32, "%s", host_name);
-    WiFi.setHostname(my_hostname);
-}
-
 uint8_t wifi_waitForConnectResult(unsigned long timeout) {
     return WiFi.waitForConnectResult();
 }
@@ -217,6 +210,7 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
 
 // ESP32
 void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
+    // https://espressif-docs.readthedocs-hosted.com/projects/arduino-esp32/en/latest/api/deepsleep.html
     uint64_t calculate_sleeptime;
   // Store counter to the Preferences
     preferences.putULong("UTCTime", currUTime);
@@ -226,12 +220,11 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
     preferences.end();
 
   // Configure Wake Up
+#ifndef ESP32C3
     if ( Ext1WakeUP>=0 && (Time_minutes == 0 || Time_minutes > 5) ) {
         const uint64_t ext1_wakeup_pin_1_mask = 1ULL << Ext1WakeUP;      // -1 Warning during compilling
         //const uint64_t ext1_wakeup_pin_1_mask = Ext1WakeUP;
-#ifndef ESP32C3
         esp_sleep_enable_ext1_wakeup(ext1_wakeup_pin_1_mask, ESP_EXT1_WAKEUP_ALL_LOW);
-#endif
 //  Example using two PINs for external Wake UP 
 //      const int ext_wakeup_pin_1 = 2;
 //      const uint64_t ext_wakeup_pin_1_mask = 1ULL << ext_wakeup_pin_1;
@@ -239,14 +232,18 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
 //      const uint64_t ext_wakeup_pin_2_mask = 1ULL << ext_wakeup_pin_2;
 //      printf("Enabling EXT1 wakeup on pins GPIO%d, GPIO%d\n", ext_wakeup_pin_1, ext_wakeup_pin_2);
 //      esp_sleep_enable_ext1_wakeup(ext_wakeup_pin_1_mask | ext_wakeup_pin_2_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
-
     }
-#ifndef ESP32C3
     if (config.HW_Module) {
         if(config.DEBUG) Serial.println("Enabling ULP during deepsleep");
         ulp_action(1000000);                                       // 10 second loop
     }
+#else
+    if ( Ext1WakeUP>=0 && (Time_minutes == 0 || Time_minutes > 5) ) {
+        const uint64_t ext1_wakeup_pin_1_mask = 1ULL << Ext1WakeUP;      // -1 Warning during compilling
+        esp_deep_sleep_enable_gpio_wakeup(ext1_wakeup_pin_1_mask, ESP_GPIO_WAKEUP_GPIO_LOW);  //ESP_GPIO_WAKEUP_GPIO_LOW , ESP_GPIO_WAKEUP_GPIO_HIGH
+    }
 #endif
+
     if (Time_minutes > 0) {
         calculate_sleeptime = uint64_t( ((Time_minutes * 60000UL) - millis()%(Time_minutes * 60000UL)) ) * 1000ULL;
         //Serial.printf("calculate_sleeptime :%llu\n", calculate_sleeptime);
@@ -257,11 +254,12 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
 
 
 double ReadVoltage(){
-  double reading = analogRead(Batt_ADC_PIN); // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
-  if(reading < 1 || reading > 4095) return -1;
-  //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
-  return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
-} // Added an improved polynomial, use either, comment out as required
+    double reading = analogRead(Batt_ADC_PIN); // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
+    if(reading < 1 || reading > 4095) return -1;
+    //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
+    return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
+    // Added an improved polynomial, use either, comment out as required
+}
 
 long getRSSI() {
     // return WiFi RSSI Strength signal [dBm]
@@ -338,10 +336,11 @@ void hw_setup() {
 
 
   // ADC setup
-    analogSetPinAttenuation(Batt_ADC_PIN,ADC_11db);   // ADC_11db provides an attenuation so that IN/OUT = 1 / 3.6.
-                                                         // An input of 3 volts is reduced to 0.833 volts before ADC measurement
-    adcAttachPin(Batt_ADC_PIN);                       // S_VP  -- GPIO36, ADC_PRE_AMP, ADC1_CH0, RTC_GPIO0
-
+    if (Batt_ADC_PIN>=0) {
+        analogSetPinAttenuation(Batt_ADC_PIN,ADC_11db);   // ADC_11db provides an attenuation so that IN/OUT = 1 / 3.6.
+                                                          // An input of 3 volts is reduced to 0.833 volts before ADC measurement
+        adcAttachPin(Batt_ADC_PIN);                       // Pin defined in def_conf.h
+    }
   // Disable BT (most of project won't use it) to save battery.
   //  esp_bt_controller_disable();
 
