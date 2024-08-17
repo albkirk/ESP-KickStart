@@ -49,6 +49,64 @@ void wifi_hostname() {
     WiFi.hostname(host_name.c_str());
 }
 
+String public_ip() {
+
+    char serverName[] = "api.ipify.org"; // zoomkat's test web page server
+    String GET_msg;
+    int  i = 0;
+
+    WiFiClient my_ip_client;
+    if (my_ip_client.connect(serverName, 80)) {           //starts client connection, checks for connection
+        //Serial.println("connected");
+        my_ip_client.println("GET / HTTP/1.0");     //download text
+        my_ip_client.print("Host: "); my_ip_client.println(serverName);
+        my_ip_client.println();                     //end of get request
+    } 
+    else {
+        Serial.println("connection failed");        //error message if no client connect
+        return String("0.0.0.0");
+    }
+    ulong wait_client = millis();
+    while(my_ip_client.connected() && !my_ip_client.available() && (millis() - wait_client < 1000) ) delay(1); //waits for data
+    /*
+    bool clientConnected,clientAvailable;
+    while((clientConnected=my_ip_client.connected()) && !(clientAvailable=my_ip_client.available())) delay(1); //waits for data
+    Serial.print("client connected ");Serial.print(clientConnected); Serial.print(" clientAvailable "); Serial.println(clientAvailable);
+    while (my_ip_client.connected() || my_ip_client.available()) { //connected or data available
+        c = my_ip_client.read();
+        if(c) {
+            returnIP[i]=c;                          //gets byte from HTTP client buffer and
+            Serial.print(c);                        //store byte to char array
+            if(i<255)i++;
+        }
+    }
+    */
+    if(my_ip_client.available()){
+        GET_msg = my_ip_client.readString();            // Store the complete string message on variable.
+        /*
+        HTTP/1.1 200 OK
+        Date: Wed, 17 Jul 2024 22:01:57 GMT
+        Content-Type: text/plain
+        Content-Length: 13
+        Connection: close
+        Vary: Origin
+        CF-Cache-Status: DYNAMIC
+        Server: cloudflare
+        CF-RAY: 8a4d8377affc488e-LIS
+
+        89.115.173.18
+        */
+        //Serial.println(GET_msg);
+        //Serial.println("==== Disconnecting. ====");
+        my_ip_client.stop();                            //stop client
+        GET_msg.remove(0, GET_msg.indexOf("CF-RAY:"));  //remove all data until the last message
+        GET_msg.remove(0, GET_msg.indexOf(char(13))+4); //remove the remaining data up to the next CR char
+        //Serial.println(GET_msg.length());
+        return GET_msg;
+    }
+    else return String("0.0.0.0");
+}
+
 void wifi_disconnect() {
     esp_wifi_disconnect();
     WIFI_state = WL_RADIO_OFF;

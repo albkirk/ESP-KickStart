@@ -75,22 +75,22 @@ void storeStruct(void *data_source, size_t size, int start_address) {
 //  CONFIG Struct
 //
 struct __attribute__((__packed__)) strConfig {
-  char DeviceName[16];
-  char Location[16];
-  char ClientID[8];
-  byte ONTime;
-  byte SLEEPTime;
-  bool DEEPSLEEP;
-  bool LED;
-  bool TELNET;
-  bool OTA;
-  bool WEB;
-  bool Remote_Allow;
-  bool STAMode;
-  bool APMode;
-  char SSID[32];
-  char WiFiKey[32];
-  bool DHCP;
+  char DeviceName[16];            // Device Name
+  char Location[16];              // Device Location
+  char ClientID[8];               // Client ID (used on MQTT)
+  byte ONTime;                    // 0-255 seconds (Byte range)
+  byte SLEEPTime;                 // 0-255 minutes (Byte range)
+  bool DEEPSLEEP;                 // 0 - Disabled, 1 - Enabled
+  bool LED;                       // 0 - OFF, 1 - ON
+  bool TELNET;                    // 0 - Disabled, 1 - Enabled
+  bool OTA;                       // 0 - Disabled, 1 - Enabled
+  bool WEB;                       // 0 - Disabled, 1 - Enabled
+  bool Remote_Allow;              // 0 - Not Allow, 1 - Allow remote operation  
+  bool STAMode;                   // 0 - AP or AP+STA Mode, 1 - Station only Mode
+  bool APMode;                    // 0 - AP Mode Disabled, 1 - AP Mode Enabled
+  char SSID[32];                  // Wireless LAN SSID (STA mode)
+  char WiFiKey[32];               // Wireless LAN Key (STA mode)
+  bool DHCP;                      // 0 - Static IP, 1 - DHCP
   byte IP[4];
   byte Netmask[4];
   byte Gateway[4];
@@ -141,31 +141,6 @@ struct __attribute__((__packed__)) strConfig {
 //
 //  STORAGE functions
 //
-void storage_print() {
-    Serial.printf("Config Size: [%d bytes]\r\n", sizeof(config));
-    if (sizeof(config) + 16 > (EEPROMZize - Mem_Start_Pos)) Serial.println ("WARNING: Memory zones overlapinng!!");
-    Serial.printf("Device Name: %s and Location: %s\r\n", config.DeviceName, config.Location);
-    Serial.printf("ON time[sec]: %d  -  SLEEP Time[min]: %d -  DEEPSLEEP enabled: %d\r\n", config.ONTime, config.SLEEPTime, config.DEEPSLEEP);
-    Serial.printf("LED enabled: %d   -  TELNET enabled: %d  -  OTA enabled: %d  -  WEB enabled: %d\r\n", config.LED, config.TELNET, config.OTA, config.WEB);
-    Serial.printf("WiFi AP Mode: %d  -  WiFi STA Mode: %d   -  WiFi SSID: %s  -  WiFi Key: %s\r\n", config.APMode, config.STAMode, config.SSID, config.WiFiKey);
-  
-    Serial.printf("DHCP enabled: %d\r\n", config.DHCP);
-    if(!config.DHCP) {
-      Serial.printf("IP: %d.%d.%d.%d\t", config.IP[0],config.IP[1],config.IP[2],config.IP[3]);
-      Serial.printf("Mask: %d.%d.%d.%d\t", config.Netmask[0],config.Netmask[1],config.Netmask[2],config.Netmask[3]);
-      Serial.printf("Gateway: %d.%d.%d.%d\r\n", config.Gateway[0],config.Gateway[1],config.Gateway[2],config.Gateway[3]);
-      Serial.printf("DNS IP: %d.%d.%d.%d\t", config.DNS_IP[0],config.DNS_IP[1],config.DNS_IP[2],config.DNS_IP[3]);
-    }
-    Serial.printf("MODEM APN: %s  -  User: %s  -  Pass: %s  -  PIN: %s\r\n", config.APN, config.MODEM_User, config.MODEM_Password, config.SIMCardPIN);
-    Serial.printf("MQTT Server: %s  -  Port: %ld  -  Secure: %d  -  ", config.MQTT_Server, config.MQTT_Port, config.MQTT_Secure);
-    Serial.printf("MQTT User: %s  -  MQTT Pass: %s\r\n", config.MQTT_User, config.MQTT_Password);
-    Serial.printf("NTP Server Name: %s\t", config.NTPServerName);
-    Serial.printf("NTP update every %ld minutes.\t", config.Update_Time_Via_NTP_Every);
-    Serial.printf("Timezone: %ld  -  DayLight: %d\r\n", config.TimeZone, config.isDayLightSaving);
-
-    Serial.printf("Debug: %d  -  HW Module: %d  -  Remote Allowed: %d  -  WEB User: %s  -  WEB Pass: %s\r\n", config.DEBUG, config.HW_Module, config.Remote_Allow, config.WEB_User, config.WEB_Password);
-    Serial.printf("SWITCH default: %d  -  Temperature Correction: %.2f  -  Voltage Correction: %.2f\r\n", config.SWITCH_Default, config.Temp_Corr, config.LDO_Corr);
-}
 
 boolean storage_read() {
     //if (config.DEBUG) Serial.println("Reading Configuration");
@@ -215,5 +190,4 @@ void storage_setup() {
         config_defaults();
         storage_write();
     }
-    if (config.DEBUG) storage_print();
 }

@@ -40,7 +40,7 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "Location" && cmd_value !="") {hassio_delete(); strcpy(config.Location, cmd_value.c_str()); hassio_discovery(); state_update(); config_backup(); mqtt_publish(mqtt_pathcomd, "Location", "", true); }
     if ( command == "ClientID") {hassio_delete(); strcpy(config.ClientID, cmd_value.c_str()); config_backup(); global_restart(); }
     if ( command == "DEEPSLEEP" && cmd_value !="") { config.DEEPSLEEP = bool(cmd_value.toInt()); storage_write(); mqtt_publish(mqtt_pathcomd, "DEEPSLEEP", "", true);}
-    if ( command == "SLEEPTime" && cmd_value !="" && cmd_value.toInt() >= 0) { config.SLEEPTime = byte(cmd_value.toInt()); SLEEPTime = config.SLEEPTime; storage_write(); mqtt_publish(mqtt_pathcomd, "SLEEPTime", "", true); }
+    if ( command == "SLEEPTime" && cmd_value !="" && cmd_value.toInt() >= 0) { config.SLEEPTime = byte(cmd_value.toInt()); SLEEPTime = config.SLEEPTime * 60UL; storage_write(); mqtt_publish(mqtt_pathcomd, "SLEEPTime", "", true); }
     if ( command == "ONTime") { config.ONTime = byte(cmd_value.toInt());storage_write(); }
     if ( command == "ExtendONTime") if (bool(cmd_value.toInt()) == true) Extend_time = 60;
     if ( command == "LED") {config.LED = bool(cmd_value.toInt()); mqtt_publish(mqtt_pathtele, "LED", String(config.LED));}
@@ -71,6 +71,7 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "DEBUG") { config.DEBUG = bool(cmd_value.toInt()); telnet_println("DEBUG = " + String(config.DEBUG)); storage_write(); }
     if ( command == "Store") if (bool(cmd_value.toInt()) == true) storage_write();
     if ( command == "Restart")  if (bool(cmd_value.toInt()) == true) {mqtt_publish(mqtt_pathcomd, "Restart", "", true); global_restart();}
+    if ( command == "ShutDown") if (bool(cmd_value.toInt()) ) {mqtt_publish(mqtt_pathcomd, "ShutDown", "", true); GoingToSleep(0, curUTCTime());}
     if ( command == "Reset") if (bool(cmd_value.toInt()) == true) {mqtt_publish(mqtt_pathcomd, "Reset", "", true); hassio_delete(); global_reset();}
     if ( command == "Format") if (bool(cmd_value.toInt()) == true) FormatConfig();
     if ( command == "Version") {mqtt_publish(mqtt_pathtele, "Version", String(SWVer)); telnet_println("Version: " + String(SWVer));}
@@ -101,6 +102,14 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
             storage_write();
             mqtt_publish(mqtt_pathtele, "Battery", String(getBattLevel(),0));
        }
+    if ( command == "WiFi") if (bool(cmd_value.toInt()) == true) {
+            WIFI_state = WL_DISCONNECTED;
+            wifi_connect();
+        }
+        else {
+            WIFI_state = WL_RADIO_OFF;
+            wifi_disconnect();           
+        }
     if ( command == "HW_Module") {
             config.HW_Module = bool(cmd_value.toInt());
             storage_write();
@@ -186,7 +195,7 @@ void mqtt_init_path() {
 
 // MQTT commands to run on setup function.
 void mqtt_setup() {
-    float Batt_Level; 
+    //float Batt_Level; 
 
     mqtt_init_path();
     mqtt_set_client();
@@ -194,9 +203,12 @@ void mqtt_setup() {
     mqtt_setcallback();
     if (MQTT_state == MQTT_CONNECTED) {
         if (ESPWakeUpReason() == "Deep-Sleep Wake") {
+            /*
             mqtt_publish(mqtt_pathtele, "Status", "WakeUp");
             Batt_Level = getBattLevel();
             if (Batt_Level >= 0) mqtt_publish(mqtt_pathtele, "Battery", String(Batt_Level,0));
+            */
+            status_report();
         }
         else {
             // 1st RUN ?

@@ -47,6 +47,7 @@ void setup() {
       //Serial.begin(74880);                  // This odd baud speed will shows ESP8266 boot diagnostics too.
       Serial.begin(115200);                 // For faster communication use 115200
       //Serial.setTimeout(1000);
+      //Serial.setDebugOutput(false);
 
       Serial.println("");
       Serial.println("Hello World!");

@@ -9,7 +9,7 @@
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"                 // Hardware brand name
 #define MODELName           "GenBoxESP"                   // Hardware model name
-#define SWVer               "13.12"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "13.13"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- Model Variants Definition --                        // Identify variants for acomodade small code changes 
 //#define ModelVariant                                    // Ex.: MoesHouse cover, Ambisense version,... 
@@ -35,12 +35,12 @@
 #define PIN_RED             -1                            // PWM Output PIN for RED  -1 means NOT used!
 #define PIN_GREEN           -1                            // PWM Output PIN for GRREN  -1 means NOT used!
 #define PIN_BLUE            -1                            // PWM Output PIN for BLUE  -1 means NOT used!
-#define NEOPixelsPIN        -1                            // GPIO pin where the NeoPixels is connected.
+#define NEOPixelsPIN        -1                            // NeoPixels DATA GPIO pin.
 #define NEOPixelsNUM        -1                            // Number of NeoPixels LEDs attached
 
 // -- Power Source & Battery Level --
-bool BattPowered =       true;                            // Is the device battery powered?
-#define Res_Div           true                            // Do you have a Resistor divider (ence needs to multiply by 2)?
+bool BattPowered =       false;                           // Is the device battery powered?
+#define Res_Div          false                            // Do you have a Resistor divider (ence needs to multiply by 2)?
 #define Batt_L_Thrs         15                            // Battery level threshold [0%-100%] (before slepping forever).
 #define Using_ADC         true                            // ESP8266 only. Will you use the ADC? (if not, it will measure the internal voltage)
 //#define IP5306                                          // Power Management chip. TTGo T-Call module uses this.
@@ -59,6 +59,11 @@ bool BattPowered =       true;                            // Is the device batte
 // -- I2C PIN Definition --
 #define SDAPIN              -1                            // 8266=4, ESP32=21, -1 means NO SDA used!
 #define SCKPIN              -1                            // 8266=5, ESP32=22, -1 means NO SCK used!
+
+// -- I2S PIN Definition --
+#define I2S_WS              -1                            // Microphone WS PIN 2
+#define I2S_SCK             -1                            // Microphone SCK PIN 14
+#define I2S_SD              -1                            // Microphone SD PIN 15
 
 // -- DHT Definition --
 #define DHTTYPE              2                            // use 1 for "DHT11", 2 for "DHT22", or 3 for "AM2320" to select the DHT Model

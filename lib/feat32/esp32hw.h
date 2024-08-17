@@ -24,7 +24,7 @@ String HEXtoUpperString(uint32_t hexval, uint hexlen);
 String ChipID=HEXtoUpperString(getChipId(), 6);
 #define ESP_SSID String("ESP-" + ChipID)    // SSID to use as Access Point
 #define Number_of_measures 5                // Number of value samples (measurements) to calculate average
-byte SLEEPTime = config.SLEEPTime;          // Variable to allow temporary change the sleeptime (ex.: = 0)
+unsigned long SLEEPTime = 0;                // Variable to allow temporary change the sleeptime (ex.: = 0)
 bool Celular_Connected = false;             // Modem Connection state
 
 
@@ -139,6 +139,19 @@ void esp_wifi_disconnect() {
     WiFi.mode(WIFI_MODE_NULL);
 }
 
+
+void esp_bt_connect() {
+    btStart();
+}
+
+void esp_bt_disconnect() {
+    btStop();
+}
+
+bool esp_bt_check() {
+    return btStarted();
+}
+
 uint8_t wifi_waitForConnectResult(unsigned long timeout) {
     return WiFi.waitForConnectResult();
 }
@@ -200,16 +213,16 @@ bool RTC_reset() {
 }
 
 //  ESP8266
-void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
+void GoingToSleep(unsigned long Time_seconds = 0, unsigned long currUTime = 0 ) {
     rtcData.lastUTCTime = currUTime;
     keep_IP_address();
     RTC_write();
-    ESP.deepSleep( Time_minutes * 60 * 1000000);          // time in minutes converted to microseconds
+    ESP.deepSleep( Time_seconds * 1000000);          // time in minutes converted to microseconds
 }
 */
 
 // ESP32
-void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
+void GoingToSleep(unsigned long Time_seconds = 0, unsigned long currUTime = 0) {
     // https://espressif-docs.readthedocs-hosted.com/projects/arduino-esp32/en/latest/api/deepsleep.html
     uint64_t calculate_sleeptime;
   // Store counter to the Preferences
@@ -221,7 +234,7 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
 
   // Configure Wake Up
 #ifndef ESP32C3
-    if ( Ext1WakeUP>=0 && (Time_minutes == 0 || Time_minutes > 5) ) {
+    if ( Ext1WakeUP>=0 && (Time_seconds == 0 || Time_seconds > 300 ) ) {
         const uint64_t ext1_wakeup_pin_1_mask = 1ULL << Ext1WakeUP;      // -1 Warning during compilling
         //const uint64_t ext1_wakeup_pin_1_mask = Ext1WakeUP;
         esp_sleep_enable_ext1_wakeup(ext1_wakeup_pin_1_mask, ESP_EXT1_WAKEUP_ALL_LOW);
@@ -238,15 +251,18 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
         ulp_action(1000000);                                       // 10 second loop
     }
 #else
-    if ( Ext1WakeUP>=0 && (Time_minutes == 0 || Time_minutes > 5) ) {
+    if ( Ext1WakeUP>=0 && (Time_seconds == 0 || Time_seconds > 300) ) {
         const uint64_t ext1_wakeup_pin_1_mask = 1ULL << Ext1WakeUP;      // -1 Warning during compilling
         esp_deep_sleep_enable_gpio_wakeup(ext1_wakeup_pin_1_mask, ESP_GPIO_WAKEUP_GPIO_LOW);  //ESP_GPIO_WAKEUP_GPIO_LOW , ESP_GPIO_WAKEUP_GPIO_HIGH
     }
 #endif
 
-    if (Time_minutes > 0) {
-        calculate_sleeptime = uint64_t( ((Time_minutes * 60000UL) - millis()%(Time_minutes * 60000UL)) ) * 1000ULL;
+    if (Time_seconds > 0) {
+        if (millis() < (Time_seconds * 1000UL)) {
+        calculate_sleeptime = uint64_t( ((Time_seconds * 1000UL) - millis()%(Time_seconds * 1000UL)) ) * 1000ULL;
         //Serial.printf("calculate_sleeptime :%llu\n", calculate_sleeptime);
+        }
+        else calculate_sleeptime = uint64_t(Time_seconds * 1000000UL);
         esp_sleep_enable_timer_wakeup(calculate_sleeptime);  // time in minutes converted to microseconds
     }
     esp_deep_sleep_start();
@@ -285,7 +301,7 @@ static const String RESET_REASON_to_string[] = {
     "SW_RESET",                /**<=  3, Software reset digital core*/
     "OWDT_RESET",              /**<=  4, Legacy watch dog reset digital core*/
     "Deep-Sleep Wake",         /**<=  5, Deep Sleep reset digital core  original msg -> "DEEPSLEEP_RESET"*/
-    "SDIO_RESET",              /**<=  6, Reset by SLC module, reset digital core*/
+    "Deep-Sleep Wake",         /**<=  "SDIO_RESET" 6, Reset by SLC module, reset digital core*/  
     "TG0WDT_SYS_RESET",        /**<=  7, Timer Group0 Watch dog reset digital core*/
     "TG1WDT_SYS_RESET",        /**<=  8, Timer Group1 Watch dog reset digital core*/
     "RTCWDT_SYS_RESET",        /**<=  9, RTC Watch dog Reset digital core*/

@@ -138,20 +138,25 @@ uint8_t wifi_waitForConnectResult(unsigned long timeout) {
     return WiFi.waitForConnectResult(timeout);
 }
 
+
+void RTC_print() {
+    if (config.DEBUG) {
+        Serial.print("Read  crc: " + String(rtcData.crc32) + "  -  ");
+        Serial.print("Read  Last Date: " + String(rtcData.lastUTCTime) + "  -  ");
+        Serial.print("Read  BSSID: " + CharArray_to_StringHEX((const char*)rtcData.bssid, sizeof(rtcData.bssid)) + "  -  ");
+        Serial.print("Read  LastWiFiChannel: " + String(rtcData.LastWiFiChannel) + "  -  ");
+        Serial.print("Read  Byte Value: " + String(rtcData.ByteValue) + "  -  ");
+        Serial.println("Read  Float Value: " + String(rtcData.FloatValue));
+    }
+}
+
 // Read RTC memory (where the Wifi data is stored)
 bool RTC_read() {
     if (ESP.rtcUserMemoryRead(0, (uint32_t*) &rtcData, sizeof(rtcData))) {
         // Calculate the CRC of what we just read from RTC memory, but skip the first 4 bytes as that's the checksum itself.
         uint32_t crc = calculateCRC32( ((uint8_t*)&rtcData) + 4, sizeof( rtcData ) - 4 );
         if( crc == rtcData.crc32 ) {
-            if (config.DEBUG) {
-                Serial.print("Read  crc: " + String(rtcData.crc32) + "  -  ");
-                Serial.print("Read  Last Date: " + String(rtcData.lastUTCTime) + "  -  ");
-                Serial.print("Read  BSSID: " + CharArray_to_StringHEX((const char*)rtcData.bssid, sizeof(rtcData.bssid)) + "  -  ");
-                Serial.print("Read  LastWiFiChannel: " + String(rtcData.LastWiFiChannel) + "  -  ");
-                Serial.print("Read  Byte Value: " + String(rtcData.ByteValue) + "  -  ");
-                Serial.println("Read  Float Value: " + String(rtcData.FloatValue));
-            }
+            //RTC_print();
             return true;
         }
     }
@@ -164,14 +169,7 @@ bool RTC_write() {
     memcpy( rtcData.bssid, WiFi.BSSID(), 6 ); // Copy 6 bytes of BSSID (AP's MAC address)
     rtcData.crc32 = calculateCRC32( ((uint8_t*)&rtcData) + 4, sizeof( rtcData ) - 4 );
     //rtcData.lastUTCTime = curUnixTime();
-    if (config.DEBUG) {
-        Serial.print("Write crc: " + String(rtcData.crc32) + "  -  ");
-        Serial.print("Write Last Date: " + String(rtcData.lastUTCTime) + "  -  ");
-        Serial.print("Write BSSID: " + CharArray_to_StringHEX((const char*)rtcData.bssid, sizeof(rtcData.bssid)) + "  -  ");
-        Serial.print("Write LastWiFiChannel: " + String(rtcData.LastWiFiChannel) + "  -  ");
-        Serial.print("Write Byte value: " + String(rtcData.ByteValue) + "  -  ");
-        Serial.println("Write Float value: " + String(rtcData.FloatValue));
-    }
+    //RTC_print();
 
 // Write rtcData back to RTC memory
     if (ESP.rtcUserMemoryWrite(0, (uint32_t*) &rtcData, sizeof(rtcData))) return true;
@@ -192,11 +190,17 @@ bool RTC_reset() {
 }
 
 //  ESP8266
-void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
+void GoingToSleep(byte Time_seconds = 0, unsigned long currUTime = 0 ) {
+    uint64_t calculate_sleeptime;
+    if (millis() < (Time_seconds * 1000UL)) {
+        calculate_sleeptime = uint64_t( ((Time_seconds * 1000UL) - millis()%(Time_seconds * 1000UL)) ) * 1000ULL;
+        //Serial.printf("calculate_sleeptime :%llu\n", calculate_sleeptime);
+    }
+    else calculate_sleeptime = uint64_t(Time_seconds * 1000000UL);
     rtcData.lastUTCTime = currUTime;
     keep_IP_address();
     RTC_write();
-    ESP.deepSleep( Time_minutes * 60 * 1000000);            // time in minutes converted to microseconds
+    ESP.deepSleep(calculate_sleeptime);            // time in seconds converted to microseconds
 }
 
 float ReadVoltage(){
@@ -251,32 +255,10 @@ void FormatConfig() {                                   // WARNING!! To be used 
 
 void hw_setup() {
     yield();
-/*  // Output GPIOs
-      if (LED_ESP>=0) {
-          pinMode(LED_ESP, OUTPUT);
-          digitalWrite(LED_ESP, HIGH);                  // initialize LED off
-      }
-      if (BUZZER>=0) {
-          pinMode(BUZZER, OUTPUT);
-          digitalWrite(BUZZER, LOW);                    // initialize BUZZER off
-      }
 
-  // Input GPIOs
-    if (Def_Config>=0) {
-        pinMode(Def_Config, INPUT_PULLUP);
-        if (!digitalRead(Def_Config)) {
-            delay(5000);
-            if (!digitalRead(Def_Config)) {
-                flash_LED(5);
-                storage_reset();
-                RTC_reset();
-                ESPRestart();
-            }
-        }
-    }
-*/
 
-      //RTC_read();                                      // Read the RTC memmory
+      RTC_read();                                      // Read the RTC memmory
+      Serial.println("Stored UTCTime: " + String(rtcData.lastUTCTime));
 }
 
 void hw_loop() {

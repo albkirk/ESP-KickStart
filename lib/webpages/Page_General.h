@@ -122,7 +122,7 @@ void send_general_html()
             if (MyWebServer.argName(i) == "clientid") strcpy(config.ClientID, urldecode(MyWebServer.arg(i)).c_str());
             if (MyWebServer.argName(i) == "locat") strcpy(config.Location, urldecode(MyWebServer.arg(i)).c_str());
             if (MyWebServer.argName(i) == "wktm") config.ONTime =  byte(MyWebServer.arg(i).toInt());
-            if (MyWebServer.argName(i) == "sltm") { config.SLEEPTime =  MyWebServer.arg(i).toInt(); SLEEPTime = config.SLEEPTime; }
+            if (MyWebServer.argName(i) == "sltm") { config.SLEEPTime =  MyWebServer.arg(i).toInt(); SLEEPTime = config.SLEEPTime * 60UL; }
             if (MyWebServer.argName(i) == "dsleep") config.DEEPSLEEP = true;
             if (MyWebServer.argName(i) == "led") config.LED = true;
         }
