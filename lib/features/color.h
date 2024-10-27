@@ -329,10 +329,11 @@ void color_setup() {
         pinMode(PIN_RED,   OUTPUT);
         pinMode(PIN_GREEN, OUTPUT);
         pinMode(PIN_BLUE,  OUTPUT);
-        analogWriteRange(PWM_RANGE);    // Duty cycle Range of values [o-PWMRANGE] equal to FF
-        analogWriteFreq(PWM_FREQ);      // PWM Frequency 250Hz
+        analogWriteRange(PWM_RANGE);        // Duty cycle Range of values [o-PWMRANGE] equal to FF
+        analogWriteFreq(PWM_FREQ);          // PWM Frequency 250Hz
     #endif
-    color_set(BLACK);                   // Initiate LED Strip turned off
+    color_set(BLACK);                       // Initiate LED Strip turned off
+    strcpy(LastNBlack,config.InitColor);    // Setup the initial color for the Light/Switch command
     delay(200);
     if (config.SWITCH_Default) {
         strcpy(Color,config.InitColor);     // for faster control of RGB, independent of WiFI/MQTT/system status
@@ -340,7 +341,6 @@ void color_setup() {
         Light_Last = false;                 // and force publishing initial Light State
         color_set(Color);                   // Turning LED Strip to initial color (typicaly white...)
         strcpy(LastColor,BLACK);            // and force publishing initial color after Wifi and MQQT initialization
-        strcpy(LastNBlack,config.InitColor);// Setup the initial color for the Light/Switch command
     }
 #else
     // Set NeoPixel configuration

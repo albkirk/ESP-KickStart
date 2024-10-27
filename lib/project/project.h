@@ -5,7 +5,6 @@
 
 // **** Project code functions here ...
 void project_setup() {
-  Extend_time = 0;
 }
 
 void project_loop() {
@@ -24,7 +23,7 @@ void project_loop() {
         if (A_COUNT >= 1 && !A_STATUS && (millis() - Last_A > Butt_Interval)) {
             mqtt_publish(mqtt_pathtele, "Button", String(A_COUNT));
             flash_LED(A_COUNT);
-            if (A_COUNT == 2) global_restart();
+            if (A_COUNT == 3) global_restart();
 
             if (A_COUNT == 5) {
                 config.TELNET = false;
@@ -33,7 +32,6 @@ void project_loop() {
                 config.APMode = false;
                 config.LED = false;
                 config.DEEPSLEEP = true;
-                telnet_println("COUNT 5!!!");
                 storage_write();
                 web_setup();                // needed to clean the ON extender time.
                 telnet_setup();

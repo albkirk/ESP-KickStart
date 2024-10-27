@@ -51,7 +51,7 @@ void send_save_quit_html()
 {
         yield();
     MyWebServer.send ( 200, "text/html", PAGE_Save_Quit );
-        telnet_println(__FUNCTION__);
+        Serial.println(__FUNCTION__);
 }
 
 void execute_save_quit_html()
@@ -61,7 +61,7 @@ void execute_save_quit_html()
 
     MyWebServer.stop();
     config.TELNET = false;
-    config.OTA = false;
+    config.OTA = true;
     config.WEB = false;
     config.APMode = false;
     config.LED = false;

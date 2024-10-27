@@ -15,7 +15,7 @@
 
 #ifdef ESP32
     #include <esp32hw.h>
-#else 
+#else
     #include <hw8266.h>
 #endif
 
@@ -52,7 +52,7 @@ void setup() {
       Serial.println("");
       Serial.println("Hello World!");
       Serial.println("My ID is " + ChipID + " and I'm running version " + SWVer);
-      Serial.println("Reset reason: " + ESPWakeUpReason());
+      Serial.println("Reset reason: " + ESPResetReason());
 
   // Start Storage service and read stored configuration
       storage_setup();

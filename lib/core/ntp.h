@@ -147,7 +147,7 @@ void getNTPtime(unsigned long timeout_sync = 1000UL)
       telnet_println("NTP extracted from Internet with SUCCESS!");
     }
   }
-  if (ESPWakeUpReason() == "Deep-Sleep Wake" && loop_timeOut)
+  if (ESPResetReason() == "Deep-Sleep Wake" && loop_timeOut)
   {
     UTCTimeStamp = rtcData.lastUTCTime + config.SLEEPTime * 60 + 1; // + 1 is an empirical number to adjust the time error.
     RefMillis = 0;

@@ -9,10 +9,14 @@
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"                 // Hardware brand name
 #define MODELName           "GenBoxESP"                   // Hardware model name
-#define SWVer               "13.13"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "13.14"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- Model Variants Definition --                        // Identify variants for acomodade small code changes 
-//#define ModelVariant                                    // Ex.: MoesHouse cover, Ambisense version,... 
+//-> Comment the definitions using //->
+//#define ModelVariant                                        // Ex.: MoesHouse cover, Ambisense version,... 
+#ifdef ModelVariant
+#else
+#endif
 
 // -- DIGITAL GPIO to Function Assignment --
 #define LED_ESP              8                            // 8266=2, ESP32=22, ESP32C3=8, T-Call=13, TTGoTS=22, T5=19, -1 means NOT used!
@@ -46,9 +50,15 @@ bool BattPowered =       false;                           // Is the device batte
 //#define IP5306                                          // Power Management chip. TTGo T-Call module uses this.
 
 // -- ADC GPIO & (ESP32 Only)
-#define Batt_ADC_PIN        -1                            // IO pin for Battery ADC measurement. Default->36,  TFT->36, EPaper->35
-#define NTC_ADC_PIN         -1                            // IO pin for NTC ADC measurement. Default->36,  TFT->36, EPaper->35
-#define LUX_ADC_PIN         -1                            // IO pin for LUX ADC measurement. Default->36,  TFT->36, EPaper->35
+#ifdef ESP8266
+    #define Batt_ADC_PIN    A0
+    #define NTC_ADC_PIN     A0
+    #define LUX_ADC_PIN     A0    
+#else
+    #define Batt_ADC_PIN    -1                            // IO pin for Battery ADC measurement. Default->36,  TFT->36, EPaper->35
+    #define NTC_ADC_PIN     -1                            // IO pin for NTC ADC measurement. Default->36,  TFT->36, EPaper->35
+    #define LUX_ADC_PIN     -1                            // IO pin for LUX ADC measurement. Default->36,  TFT->36, EPaper->35
+#endif
 
 // -- SPI PIN Definition --
 #define MISO_PIN            -1                            // SPI MISO pin, , -1 means NOT used!
@@ -69,7 +79,11 @@ bool BattPowered =       false;                           // Is the device batte
 #define DHTTYPE              2                            // use 1 for "DHT11", 2 for "DHT22", or 3 for "AM2320" to select the DHT Model
 #define DHTPIN              -1                            // GPIO connected to DHT Data PIN. -1 means NO DHT used!
 
-// -- MODEM Definition --
+// -- COMUNICATION Definition --
+//Bluetooth Definition
+#define BLUETOOTH_NAME      MODELName                     // Name of the Bluetooth device
+#define BLUETOOTH_Disabled                                // Comment it if using BT. It disables Bluetooth radio to save energy. 
+
 // Module selection
 //#define TINY_GSM_MODEM_SIM7020                          // SIMCOM 7020 module. 
 //#define TINY_GSM_MODEM_SIM800                           // SIMCOM 800 module. TTGo T-Call module uses this chip

@@ -24,6 +24,13 @@ float Batt_Last  = 0;
 bool CPU_High = false;                      // System flag indicating being busy executing any CPU intensive task, such capture VIDEO
 
 
+String trimword( String str) {
+    str.toLowerCase();
+    str.replace(" ", "_");
+    str.replace("-", "_");
+    return str;
+}
+
 void storage_print() {
     telnet_println("Config Size: [" + String(sizeof(config)) + " bytes]");
     if (sizeof(config) + 16 > (EEPROMZize - Mem_Start_Pos)) Serial.println ("-- WARNING: Memory zones overlapinng!! --");
@@ -213,7 +220,7 @@ void global_setup() {
         pinMode(Reset_Btn, INPUT_PULLUP);
     }
 
-    SLEEPTime = config.SLEEPTime * 60UL;          // Variable to allow temporary change the sleeptime (ex.: = 0)
+    SLEEPTime = config.SLEEPTime * 60UL;          // Variable [in seconds] to allow temporary change the sleeptime (ex.: = 0)
 }
 
 void global_loop() {

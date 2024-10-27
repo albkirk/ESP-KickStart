@@ -43,15 +43,16 @@ void send_status_attributes(String param) {
     attributes_doc["SWVer"]             = SWVer;                                // Software Version
     //attributes_doc["ChipID"]            = ChipID;                               // Chip ID
     //attributes_doc["CPUClock"]          = CPU_Clock();                          // CPU Clock
-    attributes_doc["Boot"]              = ESPWakeUpReason();                    // Boot Reason
+    attributes_doc["Boot"]              = ESPResetReason();                     // Boot Reason
     if (WIFI_state == WL_CONNECTED) attributes_doc["IP"] = WiFi.localIP().toString(); // WiFi IP address
+    if (config.DEBUG) attributes_doc["BSSID"] = WiFi.BSSIDstr();                // WiFi BSSID address
     #ifdef Modem_WEB_TELNET
         if (Celular_Connected) attributes_doc["IP"] = ModemIP;                  // Modem IP address
     #endif
     attributes_doc["Location"]          = config.Location;                      // Device Location
     attributes_doc["DEEPSleep"]         = config.DEEPSLEEP;                     // DEEPSleep status
     attributes_doc["ONTime"]            = config.ONTime;                        // ONTime 
-    attributes_doc["SLEEPTime"]         = config.SLEEPTime;                     // DEEPSleep time
+    attributes_doc["SLEEPTime"]         = config.SLEEPTime;                     // SLEEP time
 
     #ifdef IP5306
         attributes_doc["Charging"]          = isCharging();                         // Batt charging
@@ -121,6 +122,8 @@ void config_entity(String entity, String device_class, String param = "", String
 
         if (dis_retain) discovery_doc["ret"] = true;                            // retain
         if(param == "LED") discovery_doc["icon"] = "hass:lighthouse-on";
+        if(param == "Switch_Def") discovery_doc["icon"] = "mdi:toggle-switch";
+
 
         if(param == "Exterior") { 
             //discovery_doc["json_attr_t"] = "~/inform/" + "attr_" + param;     // Attributes topic
@@ -230,7 +233,8 @@ void config_entity(String entity, String device_class, String param = "", String
         if(device_class == "energy") {
             discovery_doc["unit_of_meas"] = "Wh";
             discovery_doc["val_tpl"]      = "{{value_json.Energy | float }}";
-            discovery_doc["icon"]         = "hass:transmission-tower";
+            discovery_doc["state_class"]  = "total";
+            //discovery_doc["icon"]         = "hass:transmission-tower";
         }
     }
 

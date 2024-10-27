@@ -53,7 +53,6 @@ String public_ip() {
 
     char serverName[] = "api.ipify.org"; // zoomkat's test web page server
     String GET_msg;
-    int  i = 0;
 
     WiFiClient my_ip_client;
     if (my_ip_client.connect(serverName, 80)) {           //starts client connection, checks for connection
@@ -133,7 +132,7 @@ void wifi_connect() {
 
             if (config.STAMode) {
                 // Handle DHCP, IP address and hostname for the shield
-                if (  !config.DHCP || ( RTC_read() && (ESPWakeUpReason() == "Deep-Sleep Wake") )  ) {
+                if (  !config.DHCP || ( RTC_read() && (ESPResetReason() == "Deep-Sleep Wake") )  ) {
                     WiFi.persistent(true);                   // required for fast WiFi registration
                     // Static IP (No DHCP) may be handy for fast WiFi registration
                     IPAddress StaticIP(config.IP[0], config.IP[1], config.IP[2], config.IP[3]);
@@ -142,7 +141,7 @@ void wifi_connect() {
                     IPAddress DNS(config.DNS_IP[0], config.DNS_IP[1], config.DNS_IP[2], config.DNS_IP[3]);
                     WiFi.config(StaticIP, Gateway, Subnet, DNS);
                 };
-                if( RTC_read() && (ESPWakeUpReason() == "Deep-Sleep Wake") ) {
+                if( RTC_read() && (ESPResetReason() == "Deep-Sleep Wake") ) {
                     // The RTC data was good, make a quick connection
                     if (config.DEBUG) Serial.print("Waking from DeepSleep and connecting to WiFi using RTD data and Static IP... ");
                     WiFi.begin( config.SSID, config.WiFiKey, rtcData.LastWiFiChannel, rtcData.bssid, true );

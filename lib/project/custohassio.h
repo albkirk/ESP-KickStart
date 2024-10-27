@@ -3,14 +3,14 @@
 // NOTE! entity and device_class must be lowecased, except "None"
 
 void custo_hassio_disc(){
-//    config_entity("switch","switch","Switch");
-//    config_entity("sensor","none","Timer");
+//    config_entity("switch","None","DEEPSLEEP","",true);
+//    config_entity("switch","None","Switch_Def","",true);
 //    config_trigger("Button_1");
 }
 
 void custo_hassio_del(){
-//    delete_entity("switch","switch","Switch");
-//    delete_entity("sensor","none","Timer");
+//    delete_entity("switch", "None", "DEEPSLEEP");
+//    delete_entity("switch","","Switch_Def");
 //    delete_trigger("Button_1");
 }
 
@@ -53,5 +53,4 @@ void config_backup() {
     //telnet_println("Backup string: " + String(config_jsonString));
     mqtt_publish(mqtt_pathconf, "BckpRstr", String(config_jsonString), true);
 }
-
 

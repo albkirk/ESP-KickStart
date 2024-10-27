@@ -3,11 +3,6 @@
 #include <Wire.h>
 #include <AM2320.h>
 
-#ifdef ESP8266
-    #define Batt_ADC_PIN A0
-    #define NTC_ADC_PIN  A0
-    #define LUX_ADC_PIN  A0    
-#endif
 
 // Initialize DHT/AM sensor.
 #define DHT_11 1

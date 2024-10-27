@@ -12,7 +12,7 @@
 #define ChipID HEXtoUpperString(ESP.getChipId(), 6)
 #define ESP_SSID String("ESP-" + ChipID)                // SSID used as Acces Point
 #define Number_of_measures 5                            // Number of value samples (measurements) to calculate average
-byte SLEEPTime = config.SLEEPTime;                      // Variable to allow temporary change the sleeptime (ex.: = 0)
+unsigned long SLEEPTime = 0;                            // Variable to allow temporary change the sleeptime (ex.: = 0)
 bool Celular_Connected = false;                         // Modem Connection state
 
 
@@ -190,7 +190,7 @@ bool RTC_reset() {
 }
 
 //  ESP8266
-void GoingToSleep(byte Time_seconds = 0, unsigned long currUTime = 0 ) {
+void GoingToSleep(unsigned long Time_seconds = 0, unsigned long currUTime = 0 ) {
     uint64_t calculate_sleeptime;
     if (millis() < (Time_seconds * 1000UL)) {
         calculate_sleeptime = uint64_t( ((Time_seconds * 1000UL) - millis()%(Time_seconds * 1000UL)) ) * 1000ULL;
@@ -204,7 +204,7 @@ void GoingToSleep(byte Time_seconds = 0, unsigned long currUTime = 0 ) {
 }
 
 float ReadVoltage(){
-    if (Using_ADC) {return float((analogRead(pin) * Vcc)/1000.0);}
+    if (Using_ADC) {return float((analogRead(A0) * Vcc)/1000.0);}
     else {return float(ESP.getVcc());}         // only later, the (final) measurement will be divided by 1000
 }
 
@@ -226,7 +226,7 @@ void ESPRestart() {
     ESP.restart();
 }
 
-String ESPWakeUpReason() {    // WAKEUP_REASON
+String ESPResetReason() {    // WAKEUP_REASON
   return ESP.getResetReason();
 }
 
