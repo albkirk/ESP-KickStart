@@ -114,13 +114,14 @@ void send_general_html()
     if (MyWebServer.args() > 0 )  // Save Settings
     {
         String Last_config = String(config.Location);
+        bool hassio_rediscover = false;
         config.DEEPSLEEP = false;
         config.LED = false;
         for ( uint8_t i = 0; i < MyWebServer.args(); i++ ) {
             if (MyWebServer.argName(i) == "webusername") strcpy(config.WEB_User, urldecode(MyWebServer.arg(i)).c_str());
             if (MyWebServer.argName(i) == "webpassword" && urldecode(MyWebServer.arg(i)) != "") strcpy(config.WEB_Password, urldecode(MyWebServer.arg(i)).c_str());
             if (MyWebServer.argName(i) == "clientid") strcpy(config.ClientID, urldecode(MyWebServer.arg(i)).c_str());
-            if (MyWebServer.argName(i) == "locat") strcpy(config.Location, urldecode(MyWebServer.arg(i)).c_str());
+            if (MyWebServer.argName(i) == "locat") { strcpy(config.Location, urldecode(MyWebServer.arg(i)).c_str()); hassio_rediscover = true; }
             if (MyWebServer.argName(i) == "wktm") config.ONTime =  byte(MyWebServer.arg(i).toInt());
             if (MyWebServer.argName(i) == "sltm") { config.SLEEPTime =  MyWebServer.arg(i).toInt(); SLEEPTime = config.SLEEPTime * 60UL; }
             if (MyWebServer.argName(i) == "dsleep") config.DEEPSLEEP = true;
@@ -128,6 +129,7 @@ void send_general_html()
         }
         if(Last_config != String(config.Location)) {
             config_backup();
+            if(hassio_rediscover) {hassio_delete(); hassio_discovery();}
             hassio_attributes();
         }
         storage_write();

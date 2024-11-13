@@ -30,7 +30,7 @@ bool Celular_Connected = false;             // Modem Connection state
 
 // The ESP8266 RTC memory is arranged into blocks of 4 bytes. The access methods read and write 4 bytes at a time,
 // so the RTC data structure should be padded to a 4-byte multiple.
-struct __attribute__((__packed__, aligned(4))) struct_RTC {
+RTC_DATA_ATTR struct {
   uint32_t crc32 = 0U;                      // 4 bytes   
   unsigned long lastUTCTime = 0UL;          // 4 bytes
   uint8_t bssid[6];                         // 32 bytes
@@ -213,7 +213,7 @@ bool RTC_reset() {
 */
 
 // ESP32
-void GoingToSleep(unsigned long Time_seconds = 0, unsigned long currUTime = 0) {
+void esp_deepsleep(unsigned long Time_seconds = 0, unsigned long currUTime = 0) {
     // https://espressif-docs.readthedocs-hosted.com/projects/arduino-esp32/en/latest/api/deepsleep.html
     uint64_t calculate_sleeptime;
   // Store counter to the Preferences
@@ -262,11 +262,14 @@ void GoingToSleep(unsigned long Time_seconds = 0, unsigned long currUTime = 0) {
 
 float ReadVoltage(){
     double reading = analogRead(Batt_ADC_PIN); // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
+    float weighted_reading = 0;
     if(reading < 1 || reading > 4095) return -1;
-    //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
-    return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
+    //weighted_reading = return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
+    weighted_reading = -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
     // Added an improved polynomial, use either, comment out as required
     // https://github.com/G6EJD/ESP32-ADC-Accuracy-Improvement-function/blob/master/ESP32_ADC_Read_Voltage_Accurate.ino
+    if(Res_Div) return weighted_reading * Res_High / Res_Lower + weighted_reading;
+    else return weighted_reading;
 }
 
 long getRSSI() {

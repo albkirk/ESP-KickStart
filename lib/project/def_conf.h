@@ -9,7 +9,7 @@
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"                 // Hardware brand name
 #define MODELName           "GenBoxESP"                   // Hardware model name
-#define SWVer               "13.14"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "13.16"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- Model Variants Definition --                        // Identify variants for acomodade small code changes 
 //-> Comment the definitions using //->
@@ -45,19 +45,21 @@
 // -- Power Source & Battery Level --
 bool BattPowered =       false;                           // Is the device battery powered?
 #define Res_Div          false                            // Do you have a Resistor divider (ence needs to multiply by 2)?
+#define Res_High           100                            // High Resistor value (in KOhms)
+#define Res_Lower          100                            // Lower Resistor value (in KOhms)
 #define Batt_L_Thrs         15                            // Battery level threshold [0%-100%] (before slepping forever).
-#define Using_ADC         true                            // ESP8266 only. Will you use the ADC? (if not, it will measure the internal voltage)
+#define Using_ADC         true                            // ESP8266 only. Will you use the external ADC? (if not, it will measure the internal voltage)
 //#define IP5306                                          // Power Management chip. TTGo T-Call module uses this.
 
 // -- ADC GPIO & (ESP32 Only)
-#ifdef ESP8266
-    #define Batt_ADC_PIN    A0
-    #define NTC_ADC_PIN     A0
-    #define LUX_ADC_PIN     A0    
-#else
+#ifndef ESP8266
     #define Batt_ADC_PIN    -1                            // IO pin for Battery ADC measurement. Default->36,  TFT->36, EPaper->35
     #define NTC_ADC_PIN     -1                            // IO pin for NTC ADC measurement. Default->36,  TFT->36, EPaper->35
     #define LUX_ADC_PIN     -1                            // IO pin for LUX ADC measurement. Default->36,  TFT->36, EPaper->35
+#else
+    #define Batt_ADC_PIN    A0
+    #define NTC_ADC_PIN     A0
+    #define LUX_ADC_PIN     A0    
 #endif
 
 // -- SPI PIN Definition --
@@ -67,8 +69,8 @@ bool BattPowered =       false;                           // Is the device batte
 #define CS_PIN              -1                            // SPI CS pin,   , -1 means NOT used!
 
 // -- I2C PIN Definition --
-#define SDAPIN              -1                            // 8266=4, ESP32=21, -1 means NO SDA used!
-#define SCKPIN              -1                            // 8266=5, ESP32=22, -1 means NO SCK used!
+#define SDA_PIN             -1                            // 8266=4, ESP32=21, -1 means NO SDA used!
+#define SCK_PIN             -1                            // 8266=5, ESP32=22, -1 means NO SCK used!
 
 // -- I2S PIN Definition --
 #define I2S_WS              -1                            // Microphone WS PIN 2

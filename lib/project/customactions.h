@@ -25,8 +25,8 @@ void custom_mqtt(String command, String cmd_value) {
 
 void custom_update(){
     yield();
-    //ambient_data();
-    //mqtt_dump_data(mqtt_pathtele, "Telemetry");
     //mqtt_publish(mqtt_pathtele, "DEEPSLEEP", String(config.DEEPSLEEP));
     //mqtt_publish(mqtt_pathtele, "Switch_Def", String(config.SWITCH_Default));
+    //ambient_data();
+    //mqtt_dump_data(mqtt_pathtele, "Telemetry");
 }

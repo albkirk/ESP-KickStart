@@ -190,7 +190,7 @@ bool RTC_reset() {
 }
 
 //  ESP8266
-void GoingToSleep(unsigned long Time_seconds = 0, unsigned long currUTime = 0 ) {
+void esp_deepsleep(unsigned long Time_seconds = 0, unsigned long currUTime = 0 ) {
     uint64_t calculate_sleeptime;
     if (millis() < (Time_seconds * 1000UL)) {
         calculate_sleeptime = uint64_t( ((Time_seconds * 1000UL) - millis()%(Time_seconds * 1000UL)) ) * 1000ULL;
@@ -204,8 +204,12 @@ void GoingToSleep(unsigned long Time_seconds = 0, unsigned long currUTime = 0 ) 
 }
 
 float ReadVoltage(){
-    if (Using_ADC) {return float((analogRead(A0) * Vcc)/1000.0);}
-    else {return float(ESP.getVcc());}         // only later, the (final) measurement will be divided by 1000
+    if (Using_ADC) {
+        float reading = analogRead(A0)/1023.0;      // converting number [0-1023] to Volts [0.0-1.000]
+        if(Res_Div) return reading * Res_High / Res_Lower + reading;
+        else return reading;
+    }   
+    else return float(ESP.getVcc())/1000;           // return Vcc in Volts
 }
 
 long getRSSI() {

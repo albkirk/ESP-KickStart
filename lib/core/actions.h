@@ -42,7 +42,7 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "DEEPSLEEP" && cmd_value !="") { config.DEEPSLEEP = bool(cmd_value.toInt()); storage_write(); mqtt_publish(mqtt_pathcomd, "DEEPSLEEP", "", true); mqtt_publish(mqtt_pathtele, "DEEPSLEEP", String(config.DEEPSLEEP));}
     if ( command == "SLEEPTime" && cmd_value !="" && cmd_value.toInt() >= 0) { config.SLEEPTime = byte(cmd_value.toInt()); SLEEPTime = config.SLEEPTime * 60UL; storage_write(); mqtt_publish(mqtt_pathcomd, "SLEEPTime", "", true); }
     if ( command == "ONTime") { config.ONTime = byte(cmd_value.toInt());storage_write(); }
-    if ( command == "ExtendONTime") if (bool(cmd_value.toInt()) == true) Extend_time = 60;
+    if ( command == "ExtendONTime") if (bool(cmd_value.toInt()) == true) Extend_time = 60; else Extend_time = 0;
     if ( command == "LED") {config.LED = bool(cmd_value.toInt()); mqtt_publish(mqtt_pathtele, "LED", String(config.LED));}
     if ( command == "TELNET" && cmd_value !="") { config.TELNET = bool(cmd_value.toInt()); storage_write(); mqtt_publish(mqtt_pathcomd, "TELNET", "", true); telnet_setup(); }
     if ( command == "OTA" && cmd_value !="") { config.OTA = bool(cmd_value.toInt()); storage_write(); mqtt_publish(mqtt_pathcomd, "OTA", "", true); global_restart(); }
@@ -71,7 +71,7 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "DEBUG") { config.DEBUG = bool(cmd_value.toInt()); telnet_println("DEBUG = " + String(config.DEBUG)); storage_write(); }
     if ( command == "Store") if (bool(cmd_value.toInt()) == true) { storage_write(); telnet_println("Storage written!"); }
     if ( command == "Restart")  if (bool(cmd_value.toInt()) == true) {mqtt_publish(mqtt_pathcomd, "Restart", "", true); global_restart();}
-    if ( command == "ShutDown") if (bool(cmd_value.toInt()) ) {mqtt_publish(mqtt_pathcomd, "ShutDown", "", true); GoingToSleep(0, curUTCTime());}
+    if ( command == "ShutDown") if (bool(cmd_value.toInt()) ) {mqtt_publish(mqtt_pathcomd, "ShutDown", "", true); GoingToSleep(0,"Shutdown");}
     if ( command == "Reset") if (bool(cmd_value.toInt()) == true) {mqtt_publish(mqtt_pathcomd, "Reset", "", true); hassio_delete(); global_reset();}
     if ( command == "Format") if (bool(cmd_value.toInt()) == true) FormatConfig();
     if ( command == "Version") {mqtt_publish(mqtt_pathtele, "Version", String(SWVer)); telnet_println("Version: " + String(SWVer));}
@@ -132,7 +132,7 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "Info" && bool(cmd_value.toInt()) ) {
         //mqtt_publish(mqtt_pathtele, "DateTime", String(curDateTime()));
         //mqtt_publish(mqtt_pathtele, "NTP_Sync", String(NTP_Sync));
-        if (BattPowered) { telnet_print("Power: BATT", true); telnet_print("  -  Level: " + String(getBattLevel(),0), true); }
+        if (BattPowered) { telnet_print("Power: BATT ", true); telnet_print("  -  Level: " + String(getBattLevel(),0), true); }
         else { telnet_print("Power: MAINS", true); }
         /*if (WIFI_state == WL_CONNECTED) {
             telnet_print("  -  RSSI: " + String(getRSSI()) + " dBm");
@@ -171,6 +171,7 @@ void on_message(const char* topic, byte* payload, unsigned int msg_length) {
     if ( command == "BattPowered" ) BattPowered = bool(cmd_value.toInt());
 
     custom_mqtt(command, cmd_value);
+    console_prompt();
 
 //    if (config.DEBUG) {
 //        storage_print();
@@ -294,7 +295,10 @@ void parse_command_msg(String bufferRead) {
 
                 on_message(command.c_str(), B_value, value.length()+1);
             }
-            else telnet_println("",true);
+            else {
+                telnet_println("",true);
+                console_prompt();
+            }
         }
         TELNET_Timer = millis();                // Update timer to extend telnet inactivity timeout
 }
@@ -340,7 +344,7 @@ void telnet_loop() {
 
         if (telnetClient.available()) {
             parse_command_msg(telnetClient.readStringUntil(char(10)));
-            console_prompt();
+            //console_prompt();
         }
         yield();
     }
@@ -351,7 +355,23 @@ void telnet_loop() {
 void serial_loop() {
         if (Serial.available()) {
             parse_command_msg(Serial.readStringUntil(char(10)));
-            console_prompt();
+            //console_prompt();
         }
         yield();
+}
+
+
+// Global functions to run on loop function
+void ONTime_timeout_loop() {
+    if (config.DEEPSLEEP && millis() > ONTime_Offset + (ulong(config.ONTime) + Extend_time)*1000) {
+        before_GoingToSleep();
+        GoingToSleep();
+    }
+}
+
+void global_loop() {
+    global_reset_button();
+    ONTime_timeout_loop();
+    if (BattPowered && ((millis() - 3500) % 60000 < 5)) Batt_OK_check();    // If Batt LOW, it will DeepSleep forever!
+
 }

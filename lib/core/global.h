@@ -35,7 +35,7 @@ void storage_print() {
     telnet_println("Config Size: [" + String(sizeof(config)) + " bytes]");
     if (sizeof(config) + 16 > (EEPROMZize - Mem_Start_Pos)) Serial.println ("-- WARNING: Memory zones overlapinng!! --");
     telnet_println("Device Name: " + String(config.DeviceName) + "  -  Location: " + String(config.Location));
-    telnet_println("ON time[sec]: " + String(config.ONTime) + "  -  SLEEP Time[min]: " + String(config.SLEEPTime) + " -  DEEPSLEEP enabled: " + String(config.DEEPSLEEP));
+    telnet_println("ON time[sec]: " + String(config.ONTime) + "  -  Extend_time[sec]:" + String(Extend_time) + "  -  SLEEP Time[min]: " + String(config.SLEEPTime) + " -  DEEPSLEEP enabled: " + String(config.DEEPSLEEP));
     telnet_println("LED enabled: " + String(config.LED) + "   -  TELNET enabled: " + String(config.TELNET) + "  -  OTA enabled: " + String(config.OTA) + "  -  WEB enabled: " + String(config.WEB));
     telnet_println("WiFi AP Mode: " + String(config.APMode) + "  -  WiFi STA Mode: " + String(config.STAMode) + "   -  WiFi SSID: " + String(config.SSID) + "  -  WiFi Key: " + String(config.WiFiKey));
   
@@ -91,20 +91,17 @@ void Buzz(unsigned int n_beeps = 1, unsigned long buzz_time = BUZZER_millis ) {
     }
 }
 
-void deepsleep_procedure(unsigned long deepsleeptime = SLEEPTime) {
-    mqtt_publish(mqtt_pathtele, "Status", "DeepSleep");
+void GoingToSleep(unsigned long deepsleeptime = SLEEPTime, String status_msg = "DeepSleep") {
+    mqtt_publish(mqtt_pathtele, "Status", status_msg);
     mqtt_disconnect();
     telnet_println("Going to sleep for " + String(deepsleeptime) + " seconds, or until next event ... zzZz :) ");
     //delay(100);
     telnet_println("Total time ON: " + String(millis()) + " msec");
-    GoingToSleep(deepsleeptime, curUTCTime());
+    if (config.TELNET) telnet_stop();
+    esp_deepsleep(deepsleeptime, curUTCTime());
 }
 
-void deepsleep_loop() {
-    if (config.DEEPSLEEP && millis() > ONTime_Offset + (ulong(config.ONTime) + Extend_time)*1000) {
-        deepsleep_procedure();
-    }
-}
+// ONTime_timeout_loop() {}  ->located in lib/core/actions.h to be declared at the end of the program.
 
 float getBattLevel() {                                      // return Battery level in Percentage [0 - 100%]
 #ifdef IP5306
@@ -120,10 +117,8 @@ float getBattLevel() {                                      // return Battery le
     if (Batt_ADC_PIN<0) return -1;
     else {
         float voltage = 0.0;                                    // Input Voltage [v]
-    
         for(int i = 0; i < Number_of_measures; i++) {
-            if(Res_Div) voltage += ReadVoltage() * 2;
-            else voltage += ReadVoltage();
+            voltage += ReadVoltage();
             delay(1);
         }
         voltage = voltage / Number_of_measures + config.LDO_Corr; 
@@ -151,7 +146,7 @@ void Batt_OK_check() {                      // If LOW Batt, it will DeepSleep fo
         //#endif
         flash_LED(10);
         delay(100);
-        GoingToSleep(0, curUTCTime());     // Sleep forever
+        esp_deepsleep(0, curUTCTime());     // Sleep forever
         return;                             // Actually, it will never return !!
     }
     else return;                            // Batt OK, returning null
@@ -223,6 +218,4 @@ void global_setup() {
     SLEEPTime = config.SLEEPTime * 60UL;          // Variable [in seconds] to allow temporary change the sleeptime (ex.: = 0)
 }
 
-void global_loop() {
-    global_reset_button();
-}
+// global_loop() {}  ->located in lib/core/actions.h to be declared at the end of the program.

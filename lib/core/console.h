@@ -26,6 +26,9 @@ void telnet_print(String msg, bool Forced = false) {
 		}
 }
 
+void console_prompt() {
+	telnet_print( String(config.DeviceName) + String("> "), true);
+}
 
 void telnet_println(String msg, bool Forced = false) {
 		if (config.DEBUG || Forced) {
@@ -69,7 +72,6 @@ void telnet_setup() {
 	}
 }
 
-void console_prompt() {
-	String prmptln;
-	telnet_print( String(config.DeviceName) + String("> "), true);
-}
+
+// telnet_loop() {}  ->located in lib/core/actions.h to be declared at the end of the program.
+// serial_loop() {}  ->located in lib/core/actions.h to be declared at the end of the program.

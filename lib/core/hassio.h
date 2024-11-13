@@ -162,7 +162,6 @@ void config_entity(String entity, String device_class, String param = "", String
         discovery_doc["stat_t"]         = "~/inform/" + param;                  // state_topic
         discovery_doc["pl_off"]         = "0";                                  // Payload_off
         discovery_doc["pl_on"]          = "1";                                  // Payload_on
-
     }
 
     if(entity == "sensor") {
@@ -204,6 +203,7 @@ void config_entity(String entity, String device_class, String param = "", String
         }
 
         if(param == "HumVelocity") {
+            discovery_doc["unit_of_meas"] = "%/min";
             discovery_doc["val_tpl"]      = "{{ value_json.HumVelocity | float }}";
         }
 
@@ -237,6 +237,17 @@ void config_entity(String entity, String device_class, String param = "", String
             //discovery_doc["icon"]         = "hass:transmission-tower";
         }
     }
+
+    if(entity == "number") {                                                    // Number range [0-100] 
+        if(device_class != "None") discovery_doc["device_class"] = device_class;    // Device_class (ex.: shutter)
+        discovery_doc["cmd_t"]          = "~/command/" + param;                 // command_topic
+        //discovery_doc["cmd_tpl"]        = "1";                                  // command_template
+        discovery_doc["stat_t"]         = "~/inform/" + param;                  // state_topic
+        discovery_doc["min"]            = "0";                                  // Payload_off
+        discovery_doc["max"]            = "100";                                  // Payload_on
+        discovery_doc["mode"]           = "slider";                                  // Payload_on
+    }
+
 
     if(entity == "light") {
         if(device_class != "None") discovery_doc["device_class"] = device_class;    // Device_class (ex.: shutter)

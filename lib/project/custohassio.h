@@ -5,13 +5,13 @@
 void custo_hassio_disc(){
 //    config_entity("switch","None","DEEPSLEEP","",true);
 //    config_entity("switch","None","Switch_Def","",true);
-//    config_trigger("Button_1");
+//    config_trigger("PushButton");
 }
 
 void custo_hassio_del(){
 //    delete_entity("switch", "None", "DEEPSLEEP");
 //    delete_entity("switch","","Switch_Def");
-//    delete_trigger("Button_1");
+//    delete_trigger("PushButton");
 }
 
 void custo_hassio_attr(){
