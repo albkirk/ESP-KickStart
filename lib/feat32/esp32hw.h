@@ -13,7 +13,7 @@
 #ifdef IP5306
     #include <ip5306.h>
 #endif
-#ifndef ESP32C3
+#ifdef ULP_Support
    #include <myulp.h>
 #endif
 
@@ -237,14 +237,17 @@ void esp_deepsleep(unsigned long Time_seconds = 0, unsigned long currUTime = 0) 
 //      printf("Enabling EXT1 wakeup on pins GPIO%d, GPIO%d\n", ext_wakeup_pin_1, ext_wakeup_pin_2);
 //      esp_sleep_enable_ext1_wakeup(ext_wakeup_pin_1_mask | ext_wakeup_pin_2_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
     }
-    if (config.HW_Module) {
-        if(config.DEBUG) Serial.println("Enabling ULP during deepsleep");
-        ulp_action(1000000);                                       // 10 second loop
-    }
 #else
     if ( Ext1WakeUP>=0 && (Time_seconds == 0 || Time_seconds > 300) ) {
         const uint64_t ext1_wakeup_pin_1_mask = 1ULL << Ext1WakeUP;      // -1 Warning during compilling
         esp_deep_sleep_enable_gpio_wakeup(ext1_wakeup_pin_1_mask, ESP_GPIO_WAKEUP_GPIO_LOW);  //ESP_GPIO_WAKEUP_GPIO_LOW , ESP_GPIO_WAKEUP_GPIO_HIGH
+    }
+#endif
+
+#ifdef ULP_Support
+    if (config.HW_Module) {
+        if(config.DEBUG) Serial.println("Enabling ULP during deepsleep");
+        ulp_action(1000000);                                       // 10 second loop
     }
 #endif
 

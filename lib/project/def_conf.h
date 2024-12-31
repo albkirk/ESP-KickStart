@@ -4,12 +4,12 @@
 //#define ESP8285                                         // ESP8285 chip requires reduced MEM space (ex.: remove WEB page)  
 #undef ESP8266                                          // To make sure it is not used somewhere... 
 //#undef ESP32                                            // To make sure it is not used somewhere... 
-#define ESP32C3                                           // ESP32-C3 chip has no ULP.
+//#define ESP32C3                                         // ESP32-C3 chip differs from the ESP32.
 
 // -- HARWARE & SOFTWARE Version --
 #define BRANDName           "AlBros_Team"                 // Hardware brand name
 #define MODELName           "GenBoxESP"                   // Hardware model name
-#define SWVer               "13.16"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
+#define SWVer               "13.17"                       // Major.Minor Software version (use String 01.00 - 99.99 format !)
 
 // -- Model Variants Definition --                        // Identify variants for acomodade small code changes 
 //-> Comment the definitions using //->
@@ -19,7 +19,7 @@
 #endif
 
 // -- DIGITAL GPIO to Function Assignment --
-#define LED_ESP              8                            // 8266=2, ESP32=22, ESP32C3=8, T-Call=13, TTGoTS=22, T5=19, -1 means NOT used!
+#define LED_ESP             48                            // 8266=2, ESP32=22, ESP32C3=8, T-Call=13, TTGoTS=22, T5=19, -1 means NOT used!
 #define IR_PIN              -1                            // IR-LED Receiver PIN  -1 means NOT used!
 #define BUZZER              -1                            // (Active) Buzzer pin. Suggest to use pin 0. -1 means NOT used!
 #define Ext1WakeUP          -1                            // External Wake Up pin. (connected to GND, with Parallel Cap).  -1 means NOT used!
@@ -51,7 +51,8 @@ bool BattPowered =       false;                           // Is the device batte
 #define Using_ADC         true                            // ESP8266 only. Will you use the external ADC? (if not, it will measure the internal voltage)
 //#define IP5306                                          // Power Management chip. TTGo T-Call module uses this.
 
-// -- ADC GPIO & (ESP32 Only)
+// -- ADC GPIO & ULP (ESP32 Only)
+//#define ULP_Support                                       //ESP32 ULP support. ESP32-S3 and ESP32-C3 not supported.
 #ifndef ESP8266
     #define Batt_ADC_PIN    -1                            // IO pin for Battery ADC measurement. Default->36,  TFT->36, EPaper->35
     #define NTC_ADC_PIN     -1                            // IO pin for NTC ADC measurement. Default->36,  TFT->36, EPaper->35
